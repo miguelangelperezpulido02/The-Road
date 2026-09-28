@@ -1,0 +1,9 @@
+## .NET / WPF
+bin/
+obj/
+*.user
+*.suo
+.vs/
+TestResults/
+[Dd]ebug/
+[Rr]elease/

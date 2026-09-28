@@ -1,0 +1,121 @@
+{
+  "locations": [
+    {
+      "id": "dc",
+      "name": "Washington D.C.",
+      "description": "Capital en ruinas. Punto de partida hacia el oeste.",
+      "x": 620,
+      "y": 140,
+      "isStop": false,
+      "icon": "city_capital"
+    },
+    {
+      "id": "richmond",
+      "name": "Richmond",
+      "description": "Calles bloqueadas por vehículos abandonados.",
+      "x": 580,
+      "y": 190,
+      "isStop": false,
+      "icon": "city_ruins"
+    },
+    {
+      "id": "roanoke",
+      "name": "Roanoke",
+      "description": "Paso entre monta\u00f1as. Silencioso y peligroso.",
+      "x": 500,
+      "y": 220,
+      "isStop": false,
+      "icon": "city_mountain"
+    },
+    {
+      "id": "pittsburgh",
+      "name": "Pittsburgh",
+      "description": "Zona industrial con refugios y bandas.",
+      "x": 520,
+      "y": 110,
+      "isStop": false,
+      "icon": "city_industrial"
+    },
+    {
+      "id": "charleston",
+      "name": "Charleston",
+      "description": "Ruta sur. Dicen que hay un campamento.",
+      "x": 480,
+      "y": 290,
+      "isStop": false,
+      "icon": "city_coastal"
+    },
+    {
+      "id": "nashville",
+      "name": "Nashville",
+      "description": "Cruce hacia el oeste profundo.",
+      "x": 360,
+      "y": 230,
+      "isStop": false,
+      "icon": "city_crossroads"
+    },
+    {
+      "id": "fredericksburg",
+      "name": "Fredericksburg",
+      "description": "Cruce de la 95 atascado de coches. Entre los veh\u00edculos se puede chapucear.",
+      "x": 611,
+      "y": 174,
+      "isStop": true,
+      "icon": "stop_highway"
+    },
+    {
+      "id": "lynchburg",
+      "name": "Lynchburg",
+      "description": "Pueblo casi vac\u00edo. El manantial sigue dando agua.",
+      "x": 545,
+      "y": 218,
+      "isStop": true,
+      "icon": "stop_spring"
+    },
+    {
+      "id": "cumberland",
+      "name": "Cumberland",
+      "description": "Antigua estaci\u00f3n de servicio. Quedan bidones olvidados.",
+      "x": 539,
+      "y": 158,
+      "isStop": true,
+      "icon": "stop_gas"
+    },
+    {
+      "id": "greensboro",
+      "name": "Greensboro",
+      "description": "Barrio residencial saqueado. Los s\u00f3tanos a\u00fan guardan algo.",
+      "x": 540,
+      "y": 250,
+      "isStop": true,
+      "icon": "stop_suburban"
+    },
+    {
+      "id": "knoxville",
+      "name": "Knoxville",
+      "description": "Cruce ferroviario. All\u00ed duermen carpas de viajeros.",
+      "x": 431,
+      "y": 239,
+      "isStop": true,
+      "icon": "stop_rail"
+    },
+    {
+      "id": "lexington",
+      "name": "Lexington",
+      "description": "Granjas abandonadas. Hay comida si te arriesgas a buscar.",
+      "x": 448,
+      "y": 181,
+      "isStop": true,
+      "icon": "stop_farm"
+    },
+    {
+      "id": "asheville",
+      "name": "Asheville",
+      "description": "Refugio de monta\u00f1a. Reparten gasolina a cambio de historias.",
+      "x": 414,
+      "y": 273,
+      "isStop": true,
+      "icon": "stop_mountain"
+    }
+  ]
+}

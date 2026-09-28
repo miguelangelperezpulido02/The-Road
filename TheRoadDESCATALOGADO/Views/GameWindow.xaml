@@ -1,0 +1,571 @@
+<controls:MetroWindow x:Class="TheRoad.Views.GameWindow"
+                      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                      xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+                      xmlns:views="clr-namespace:TheRoad.Views"
+                      xmlns:vm="clr-namespace:TheRoad.ViewModels"
+                      xmlns:conv="clr-namespace:TheRoad.Converters"
+                      Title="The Road — Partida"
+                      Height="720" Width="1100"
+                      MinHeight="640" MinWidth="960"
+                      Background="{StaticResource BrushBgDark}"
+                      Foreground="{StaticResource BrushTextPrimary}"
+                      WindowStartupLocation="CenterScreen"
+                      GlowBrush="{StaticResource BrushAccentGold}"
+                      BorderThickness="1"
+                      BorderBrush="{StaticResource BrushBorder}"
+                      TitleForeground="{StaticResource BrushAccentGold}"
+                      TitleAlignment="Left"
+                      SaveWindowPosition="True"
+                      ShowIconOnTitleBar="False">
+
+    <controls:MetroWindow.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Converters/CommonConverters.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </controls:MetroWindow.Resources>
+
+    <controls:MetroWindow.RightWindowCommands>
+        <controls:WindowCommands>
+            <Button Content="⚙ Opciones" Click="BtnOptions_Click" ToolTip="Opciones" />
+            <Button Content="💾 Guardar" Click="BtnSave_Click" ToolTip="Guardar partida" />
+        </controls:WindowCommands>
+    </controls:MetroWindow.RightWindowCommands>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />     <!-- Header HUD -->
+            <RowDefinition Height="*" />        <!-- Main Content -->
+            <RowDefinition Height="Auto" />     <!-- Inventory Grid -->
+        </Grid.RowDefinitions>
+
+        <!-- ============================================================
+             HEADER HUD - Siempre visible
+             ============================================================ -->
+        <Border Grid.Row="0" Style="{StaticResource PanelBorder}" Margin="12,12,12,0" Padding="12,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />  <!-- Día / Ubicación -->
+                    <ColumnDefinition Width="*" />     <!-- Espaciador -->
+                    <ColumnDefinition Width="Auto" />  <!-- Resource Bars -->
+                    <ColumnDefinition Width="Auto" />  <!-- Alertas -->
+                </Grid.ColumnDefinitions>
+
+                <!-- Día y Ubicación -->
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding DiaActual}"
+                               FontFamily="{StaticResource FontMono}"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               Foreground="{StaticResource BrushAccentGold}"
+                               Effect="{StaticResource ShadowGlowGold}"
+                               VerticalAlignment="Center" />
+                    <TextBlock Text="  │  " Foreground="{StaticResource BrushTextMuted}" VerticalAlignment="Center" FontSize="16" />
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
+                        <TextBlock Text="📍" FontSize="14" VerticalAlignment="Center" Margin="0,0,4,0" />
+                        <TextBlock Text="{Binding LugarActual.Name}"
+                                   FontSize="14"
+                                   FontWeight="Medium"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Barras de Recursos -->
+                <ItemsControl Grid.Column="2" ItemsSource="{Binding ResourceBars}"
+                              VerticalAlignment="Center" HorizontalAlignment="Right">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Width="140" Margin="8,0,0,0" ToolTip="{Binding Name}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Text="{Binding Icon}" FontSize="14" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                    <ProgressBar Grid.Column="1" Value="{Binding Value}" Maximum="{Binding MaxValue}"
+                                                 Height="16" Style="{StaticResource ResourceProgressBar}"
+                                                 Foreground="{Binding Color, Converter={StaticResource StringToBrush}}"
+                                                 VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" Text="{Binding Value, StringFormat='{}{0}'}"
+                                               FontFamily="{StaticResource FontMono}" FontSize="11"
+                                               Foreground="{StaticResource BrushTextSecondary}"
+                                               VerticalAlignment="Center" Margin="6,0,0,0"
+                                               MinWidth="28" TextAlignment="Right" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Indicador de alerta -->
+                <Border Grid.Column="3" x:Name="AlertIndicator"
+                        Width="24" Height="24"
+                        CornerRadius="12"
+                        Background="{StaticResource BrushAccentMoss}"
+                        Margin="16,0,0,0"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Right"
+                        Visibility="Collapsed"
+                        ToolTip="Alerta: recursos bajos">
+                    <Border.Triggers>
+                        <EventTrigger RoutedEvent="Border.Loaded">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                     From="1" To="0.3" Duration="0:0:1"
+                                                     AutoReverse="True" RepeatBehavior="Forever" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Border.Triggers>
+                    <TextBlock Text="!" FontWeight="Bold" FontSize="14"
+                               Foreground="{StaticResource BrushBgDarkest}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- ============================================================
+             MAIN CONTENT AREA
+             ============================================================ -->
+        <Grid Grid.Row="1" Margin="12,8,12,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />        <!-- Central: Historia/Mapa/Diario -->
+                <ColumnDefinition Width="320" />      <!-- Sidebar: Estado personaje -->
+            </Grid.ColumnDefinitions>
+
+            <!-- CENTRAL PANEL -->
+            <Border Grid.Column="0" Style="{StaticResource PanelBorder}" Margin="0,0,8,0">
+                <Grid>
+                    <!-- Tab Buttons -->
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Border BorderBrush="{StaticResource BrushBorder}" BorderThickness="0,0,0,1" Margin="0,0,0,8">
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton Content="📖 HISTORIA" GroupName="ViewTabs"
+                                         IsChecked="{Binding Vista, Converter={StaticResource StringToBool}, ConverterParameter=Historia}"
+                                         Style="{StaticResource TabRadioButton}" />
+                            <RadioButton Content="🗺 MAPA" GroupName="ViewTabs"
+                                         IsChecked="{Binding Vista, Converter={StaticResource StringToBool}, ConverterParameter=Mapa}"
+                                         Style="{StaticResource TabRadioButton}" Margin="4,0,0,0" />
+                            <RadioButton Content="📓 DIARIO" GroupName="ViewTabs"
+                                         IsChecked="{Binding Vista, Converter={StaticResource StringToBool}, ConverterParameter=Diario}"
+                                         Style="{StaticResource TabRadioButton}" Margin="4,0,0,0" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Content -->
+                    <Grid Grid.Row="1">
+                        <!-- HISTORIA -->
+                        <ScrollViewer x:Name="PanelHistoria"
+                                      Visibility="{Binding Vista, Converter={StaticResource StringToVis}, ConverterParameter=Historia}"
+                                      VerticalScrollBarVisibility="Auto"
+                                      Style="{StaticResource StyledScrollViewer}"
+                                      Margin="0,8,0,0">
+                            <StackPanel>
+                                <TextBlock Text="NARRATIVA" Style="{StaticResource HeaderTextBlock}" Margin="0,0,0,8" />
+                                <Separator Style="{StaticResource DecorativeSeparator}" Margin="0,0,0,12" />
+
+                                <Border x:Name="NarrativeBorder" Style="{StaticResource PanelBorder}" Padding="16">
+                                    <TextBlock x:Name="NarrativeText"
+                                               Text="{Binding Narrativa}"
+                                               FontSize="14"
+                                               LineHeight="22"
+                                               TextWrapping="Wrap" />
+                                </Border>
+
+                                <!-- Modo de Viaje -->
+                                <StackPanel Margin="0,16,0,8">
+                                    <TextBlock Text="MODO DE VIAJE" Style="{StaticResource HeaderTextBlock}" Margin="0,0,0,8" />
+                                    <StackPanel Orientation="Horizontal">
+                                        <RadioButton Content="🛣 Autopista (larga)"
+                                                     GroupName="TravelMode"
+                                                     IsChecked="{Binding EsAutopista}"
+                                                     Style="{StaticResource TabRadioButton}"
+                                                     ToolTip="Un solo tramo: más gasolina, 1 día, eventos grandes." />
+                                        <RadioButton Content="🛤 Secundaria (segmentada)"
+                                                     GroupName="TravelMode"
+                                                     IsChecked="{Binding EsSecundaria}"
+                                                     Style="{StaticResource TabRadioButton}"
+                                                     Margin="12,0,0,0"
+                                                     ToolTip="Por paradas: poca gasolina por tramo, más días, eventos menores + chapuceo." />
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Opciones Destino -->
+                                <StackPanel Margin="0,12,0,8">
+                                    <TextBlock Text="DESTINOS DISPONIBLES" Style="{StaticResource HeaderTextBlock}" Margin="0,0,0,8" />
+                                    <ListBox x:Name="ListaOpciones"
+                                             ItemsSource="{Binding Opciones}"
+                                             SelectedItem="{Binding OpcionSeleccionada}"
+                                             Style="{StaticResource StyledListBox}"
+                                             Height="160"
+                                             BorderBrush="{StaticResource BrushBorder}"
+                                             BorderThickness="1"
+                                             Background="{StaticResource BrushBgDark}" />
+                                </StackPanel>
+
+                                <Button Content="🚗 VIAJAR AL DESTINO"
+                                        Click="BtnViajar_Click"
+                                        IsEnabled="{Binding PuedeViajar}"
+                                        Style="{StaticResource PrimaryButton}"
+                                        Height="44"
+                                        FontSize="14"
+                                        Margin="0,8,0,0"
+                                        Effect="{StaticResource ShadowGlowGold}" />
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- MAPA -->
+                        <Border x:Name="PanelMapa"
+                                Visibility="{Binding Vista, Converter={StaticResource StringToVis}, ConverterParameter=Mapa}"
+                                Background="Transparent">
+                            <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                          VerticalScrollBarVisibility="Auto"
+                                          Style="{StaticResource StyledScrollViewer}">
+                                <views:MapView x:Name="VistaMapa" />
+                            </ScrollViewer>
+                        </Border>
+
+                        <!-- DIARIO -->
+                        <ScrollViewer x:Name="PanelDiario"
+                                      Visibility="{Binding Vista, Converter={StaticResource StringToVis}, ConverterParameter=Diario}"
+                                      VerticalScrollBarVisibility="Auto"
+                                      Style="{StaticResource StyledScrollViewer}"
+                                      Margin="0,8,0,0">
+                            <StackPanel>
+                                <TextBlock Text="DIARIO DE VIAJE" Style="{StaticResource HeaderTextBlock}" Margin="0,0,0,8" />
+                                <Separator Style="{StaticResource DecorativeSeparator}" Margin="0,0,0,12" />
+                                <ListBox ItemsSource="{Binding Diario}"
+                                         Style="{StaticResource StyledListBox}"
+                                         BorderBrush="{StaticResource BrushBorder}"
+                                         BorderThickness="1"
+                                         Background="{StaticResource BrushBgDark}"
+                                         MinHeight="400">
+                                    <ListBox.ItemTemplate>
+<DataTemplate>
+                                                <Border Padding="8,4" Background="Transparent">
+                                                    <TextBlock Text="{Binding}"
+                                                               FontSize="12"
+                                                               TextWrapping="Wrap" />
+                                                </Border>
+                                            </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- SIDEBAR: ESTADO PERSONAJE -->
+            <Border Grid.Column="1" Style="{StaticResource PanelBorder}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource StyledScrollViewer}">
+                    <StackPanel>
+                        <!-- Foto y Nombre -->
+                        <Border Width="160" Height="160"
+                                BorderBrush="{StaticResource BrushBorder}" BorderThickness="2"
+                                Background="{StaticResource BrushBgDark}" CornerRadius="4"
+                                Effect="{StaticResource ShadowLarge}" Margin="0,0,0,12"
+                                HorizontalAlignment="Center">
+                            <Border.Clip>
+                                <RectangleGeometry Rect="0,0,160,160" RadiusX="2" RadiusY="2" />
+                            </Border.Clip>
+                            <Image Source="{Binding Foto}" Stretch="UniformToFill" />
+                        </Border>
+
+                        <TextBlock Text="{Binding NombreJugador}"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,0,16" />
+
+                        <!-- HP Prominent -->
+                        <Border Style="{StaticResource PanelBorder}" Padding="12" Margin="0,0,0,12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="❤" FontSize="24" VerticalAlignment="Center" Foreground="{StaticResource BrushAccentRust}" />
+                                <ProgressBar Grid.Column="1"
+                                             Value="{Binding ResourceBars[0].Value}"
+                                             Maximum="100"
+                                             Height="20"
+                                             Style="{StaticResource ResourceProgressBar}"
+                                             Foreground="{Binding ResourceBars[0].Color, Converter={StaticResource StringToBrush}}"
+                                             VerticalAlignment="Center" Margin="10,0" />
+                                <TextBlock Grid.Column="2"
+                                           Text="{Binding ResourceBars[0].Value, StringFormat='{}{0}/100'}"
+                                           FontFamily="{StaticResource FontMono}" FontSize="14"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource BrushAccentGold}"
+                                           VerticalAlignment="Center" Margin="0,0,4,0" MinWidth="55" TextAlignment="Right" />
+                            </Grid>
+                        </Border>
+
+                        <!-- Stats Grid -->
+                        <TextBlock Text="ATRIBUTOS" Style="{StaticResource HeaderTextBlock}" Margin="0,0,0,8" />
+                        <ItemsControl ItemsSource="{Binding StatRows}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource PanelBorder}" Margin="0,4" Padding="10">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{Binding Icon}" FontSize="16" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                            <TextBlock Grid.Column="1" Text="{Binding Name}" FontWeight="Bold" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="2" Text="{Binding Value}" Style="{StaticResource StatValueTextBlock}"
+                                                       Foreground="{StaticResource BrushAccentGold}" FontSize="18" Width="35" TextAlignment="Center" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!-- Resource Bars Detail -->
+                        <TextBlock Text="RECURSOS" Style="{StaticResource HeaderTextBlock}" Margin="0,16,0,8" />
+                        <ItemsControl ItemsSource="{Binding ResourceBars}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource PanelBorder}" Margin="0,3" Padding="8">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{Binding Icon}" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                            <ProgressBar Grid.Column="1"
+                                                         Value="{Binding Value}" Maximum="{Binding MaxValue}"
+                                                         Height="12"
+                                                         Style="{StaticResource ResourceProgressBar}"
+                                                         Foreground="{Binding Color, Converter={StaticResource StringToBrush}}"
+                                                         VerticalAlignment="Center" Margin="0,0,8,0" />
+<TextBlock Grid.Column="2"
+                                                       Text="{Binding DisplayText}"
+                                                       FontFamily="{StaticResource FontMono}" FontSize="11"
+                                                       Foreground="{StaticResource BrushTextSecondary}"
+                                                       VerticalAlignment="Center" MinWidth="35" TextAlignment="Right" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!-- Info Destino -->
+                        <Border Style="{StaticResource PanelBorder}" Margin="0,16,0,0" Padding="12">
+                            <TextBlock Text="{Binding InfoDestino}"
+                                       FontSize="12"
+                                       Opacity="0.85"
+                                       TextWrapping="Wrap" />
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- ============================================================
+             INVENTORY GRID (8x8) - Bottom
+             ============================================================ -->
+        <Border Grid.Row="2" Style="{StaticResource PanelBorder}" Margin="12,8,12,12" Padding="12">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <DockPanel LastChildFill="True" Margin="0,0,0,8">
+                    <TextBlock Text="INVENTARIO" Style="{StaticResource HeaderTextBlock}" VerticalAlignment="Center" />
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <TextBlock Text="{Binding InventoryUsed, StringFormat='Usados: {0}'}"
+                                   Style="{StaticResource MonoTextBlock}" VerticalAlignment="Center" Margin="0,0,12,0" />
+                        <TextBlock Text="{Binding InventoryCapacity, StringFormat='/ {0}'}"
+                                   Style="{StaticResource MonoTextBlock}" VerticalAlignment="Center" Opacity="0.6" />
+<ProgressBar Width="100" Height="6"
+                                      Value="{Binding InventoryFillRatio, Mode=OneWay}" Maximum="1"
+                                      Style="{StaticResource ResourceProgressBar}"
+                                      Foreground="{StaticResource BrushAccentGold}"
+                                      VerticalAlignment="Center" Margin="8,0,0,0" />
+                    </StackPanel>
+                </DockPanel>
+
+                <Border Grid.Row="1" BorderBrush="{StaticResource BrushBorder}" BorderThickness="1"
+                        Background="{StaticResource BrushBgDark}" CornerRadius="3">
+                    <ItemsControl ItemsSource="{Binding InventoryItems}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Rows="8" Columns="8" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Tag="{Binding Name}"
+                                        Click="BtnUsarItem_Click"
+                                        Style="{StaticResource BaseButton}"
+                                        Padding="2"
+                                        Margin="1"
+                                        ToolTip="{Binding Name}"
+                                        IsEnabled="{Binding IsUsable}"
+                                        Opacity="{Binding IsUsable, Converter={StaticResource BoolToOpacity}}">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="Border"
+                                                    Background="{TemplateBinding Background}"
+                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                                    CornerRadius="2"
+                                                    SnapsToDevicePixels="True">
+                                                <Grid>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="*" />
+                                                        <RowDefinition Height="Auto" />
+                                                    </Grid.RowDefinitions>
+                                                    <TextBlock Text="{Binding Icon}"
+                                                               FontSize="20"
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center" />
+                                                    <TextBlock Grid.Row="1"
+                                                               Text="{Binding CountText}"
+                                                               FontFamily="{StaticResource FontMono}"
+                                                               FontSize="9"
+                                                               Foreground="{StaticResource BrushAccentGold}"
+                                                               HorizontalAlignment="Right"
+                                                               VerticalAlignment="Bottom"
+                                                               Margin="0,0,2,1" />
+                                                </Grid>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource BrushAccentGold}" />
+                                                    <Setter TargetName="Border" Property="Background" Value="#2A2A1A" />
+                                                </Trigger>
+                                                <Trigger Property="IsEnabled" Value="False">
+                                                    <Setter TargetName="Border" Property="Opacity" Value="0.5" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+
+                <!-- Empty slots indicator -->
+                <TextBlock Grid.Row="1"
+                           Text="Clic en objeto usable para consumirlo. Arrastra para reorganizar (próximamente)."
+                           Style="{StaticResource MonoTextBlock}"
+                           FontSize="10"
+                           Opacity="0.5"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Bottom"
+                           Margin="0,8,0,0" />
+            </Grid>
+        </Border>
+
+        <!-- ============================================================
+             NOTIFICATIONS TOAST (Top-Right Overlay)
+             ============================================================ -->
+        <ItemsControl Grid.Row="0" Grid.RowSpan="3"
+                      ItemsSource="{Binding Notifications}"
+                      Panel.ZIndex="1000"
+                      HorizontalAlignment="Right"
+                      VerticalAlignment="Top"
+                      Margin="0,80,20,0">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Vertical" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border Style="{StaticResource PanelBorder}"
+                            Padding="12,8"
+                            Margin="0,0,0,6"
+                            MinWidth="280"
+                            MaxWidth="360"
+                            Effect="{StaticResource ShadowLarge}"
+                            RenderTransformOrigin="0.5,0.5">
+                        <Border.RenderTransform>
+                            <TranslateTransform x:Name="ToastTransform" X="400" />
+                        </Border.RenderTransform>
+                        <Border.Triggers>
+                            <EventTrigger RoutedEvent="Border.Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="ToastTransform"
+                                                         Storyboard.TargetProperty="X"
+                                                         From="400" To="0"
+                                                         Duration="0:0:0.3"
+                                                         DecelerationRatio="0.8" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </Border.Triggers>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding Type, Converter={StaticResource NotificationTypeToIcon}}"
+                                       FontSize="16" VerticalAlignment="Top" Margin="0,0,8,0"
+                                       Foreground="{Binding Type, Converter={StaticResource NotificationTypeToColor}}" />
+                            <TextBlock Grid.Column="1" Text="{Binding Message}"
+                                       FontSize="12"
+                                       TextWrapping="Wrap" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- Travel Animation Overlay -->
+        <Border x:Name="TravelOverlay"
+                Grid.Row="0" Grid.RowSpan="3"
+                Background="#800D0D0D"
+                Visibility="Collapsed"
+                Panel.ZIndex="500">
+            <Grid>
+                <Border Style="{StaticResource PanelBorder}" Padding="32"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                        MinWidth="300">
+                    <StackPanel>
+                        <TextBlock Text="🚗 VIAJANDO..."
+                                   Style="{StaticResource TitleTextBlock}"
+                                   TextAlignment="Center"
+                                   FontFamily="{StaticResource FontMono}" />
+<ProgressBar x:Name="TravelProgressBar"
+                                      Value="{Binding TravelProgress, Mode=OneWay}"
+                                      Maximum="1"
+                                      Height="8"
+                                      Style="{StaticResource ResourceProgressBar}"
+                                      Foreground="{StaticResource BrushAccentGold}"
+                                      Margin="0,16,0,0" />
+                        <TextBlock x:Name="TravelStatusText"
+                                   Text="Iniciando viaje..."
+                                   TextAlignment="Center"
+                                   Margin="0,12,0,0" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</controls:MetroWindow>

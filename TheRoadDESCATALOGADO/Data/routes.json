@@ -1,0 +1,151 @@
+{
+  "routes": [
+    {
+      "fromId": "dc",
+      "toId": "richmond",
+      "distanceKm": 170,
+      "risk": 1,
+      "type": "Largo"
+    },
+    {
+      "fromId": "richmond",
+      "toId": "roanoke",
+      "distanceKm": 280,
+      "risk": 2,
+      "type": "Largo"
+    },
+    {
+      "fromId": "richmond",
+      "toId": "pittsburgh",
+      "distanceKm": 390,
+      "risk": 2,
+      "type": "Largo"
+    },
+    {
+      "fromId": "richmond",
+      "toId": "charleston",
+      "distanceKm": 500,
+      "risk": 3,
+      "type": "Largo"
+    },
+    {
+      "fromId": "roanoke",
+      "toId": "nashville",
+      "distanceKm": 450,
+      "risk": 2,
+      "type": "Largo"
+    },
+    {
+      "fromId": "pittsburgh",
+      "toId": "nashville",
+      "distanceKm": 620,
+      "risk": 2,
+      "type": "Largo"
+    },
+    {
+      "fromId": "charleston",
+      "toId": "nashville",
+      "distanceKm": 380,
+      "risk": 2,
+      "type": "Largo"
+    },
+    {
+      "fromId": "dc",
+      "toId": "fredericksburg",
+      "distanceKm": 90,
+      "risk": 1,
+      "type": "Segmentado"
+    },
+    {
+      "fromId": "fredericksburg",
+      "toId": "richmond",
+      "distanceKm": 85,
+      "risk": 1,
+      "type": "Segmentado"
+    },
+    {
+      "fromId": "richmond",
+      "toId": "lynchburg",
+      "distanceKm": 150,
+      "risk": 1,
+      "type": "Segmentado"
+    },
+    {
+      "fromId": "lynchburg",
+      "toId": "roanoke",
+      "distanceKm": 140,
+      "risk": 2,
+      "type": "Segmentado"
+    },
+    {
+      "fromId": "richmond",
+      "toId": "cumberland",
+      "distanceKm": 210,
+      "risk": 2,
+      "type": "Segmentado"
+    },
+    {
+      "fromId": "cumberland",
+      "toId": "pittsburgh",
+      "distanceKm": 190,
+      "risk": 2,
+      "type": "Segmentado"
+    },
+    {
+      "fromId": "richmond",
+      "toId": "greensboro",
+      "distanceKm": 270,
+      "risk": 3,
+      "type": "Segmentado"
+    },
+    {
+      "fromId": "greensboro",
+      "toId": "charleston",
+      "distanceKm": 250,
+      "risk": 3,
+      "type": "Segmentado"
+    },
+    {
+      "fromId": "roanoke",
+      "toId": "knoxville",
+      "distanceKm": 240,
+      "risk": 2,
+      "type": "Segmentado"
+    },
+    {
+      "fromId": "knoxville",
+      "toId": "nashville",
+      "distanceKm": 225,
+      "risk": 2,
+      "type": "Segmentado"
+    },
+    {
+      "fromId": "pittsburgh",
+      "toId": "lexington",
+      "distanceKm": 330,
+      "risk": 2,
+      "type": "Segmentado"
+    },
+    {
+      "fromId": "lexington",
+      "toId": "nashville",
+      "distanceKm": 310,
+      "risk": 2,
+      "type": "Segmentado"
+    },
+    {
+      "fromId": "charleston",
+      "toId": "asheville",
+      "distanceKm": 200,
+      "risk": 2,
+      "type": "Segmentado"
+    },
+    {
+      "fromId": "asheville",
+      "toId": "nashville",
+      "distanceKm": 195,
+      "risk": 2,
+      "type": "Segmentado"
+    }
+  ]
+}

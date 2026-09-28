@@ -1,0 +1,19 @@
+﻿<Application x:Class="TheRoad.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:TheRoad"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- MahApps base (required for MetroWindow template) -->
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
+                <!-- Converters (must be before theme for SliderWidthConverter) -->
+                <ResourceDictionary Source="Converters/CommonConverters.xaml" />
+                <!-- Our theme (overrides MahApps) -->
+                <ResourceDictionary Source="Themes/DieselpunkTheme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

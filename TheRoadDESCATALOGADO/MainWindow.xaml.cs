@@ -1,12 +1,14 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using MahApps.Metro.Controls;
 using Microsoft.Win32;
+using TheRoad.Converters;
+using TheRoad.Services;
 using TheRoad.ViewModels;
 
 namespace TheRoad;
 
-// Solo cablea botones con el ViewModel. Sin reglas de juego aquí.
-public partial class MainWindow : Window
+public partial class MainWindow : MetroWindow
 {
     private readonly CharacterCreatorViewModel _vm = new();
 
@@ -14,6 +16,17 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         DataContext = _vm;
+
+        Resources.MergedDictionaries.Add(new ResourceDictionary
+        {
+            Source = new Uri("pack://application:,,,/TheRoad;component/Converters/CommonConverters.xaml", UriKind.Absolute)
+        });
+
+        SettingsService.Instance.ApplyWindowState(this);
+
+#if DEBUG
+        BtnDebug.Visibility = Visibility.Visible;
+#endif
     }
 
     private void BtnMas_Click(object sender, RoutedEventArgs e)
@@ -51,7 +64,26 @@ public partial class MainWindow : Window
     private void BtnComenzar_Click(object sender, RoutedEventArgs e)
     {
         var jugador = _vm.BuildPlayer();
-        MessageBox.Show($"{jugador.Resumen()}\n\nEl viaje Washington D.C. → Los Ángeles comenzará aquí en la siguiente fase.",
-            "Superviviente creado", MessageBoxButton.OK, MessageBoxImage.Information);
+        var estado = Logic.GameData.NuevaPartida(jugador);
+        var juego = new Views.GameWindow(estado);
+        juego.Show();
+        Close();
     }
+
+    private void BtnOptions_Click(object sender, RoutedEventArgs e)
+    {
+        var options = new Views.OptionsWindow();
+        options.Owner = this;
+        options.ShowDialog();
+    }
+
+#if DEBUG
+    private void BtnDebug_Click(object sender, RoutedEventArgs e)
+    {
+        new Views.GameWindow(Logic.GameData.PartidaDebug()).Show();
+        Close();
+    }
+#else
+    private void BtnDebug_Click(object sender, RoutedEventArgs e) { }
+#endif
 }

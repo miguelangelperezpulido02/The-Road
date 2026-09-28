@@ -1,0 +1,104 @@
+<controls:MetroWindow x:Class="TheRoad.Views.OptionsWindow"
+                      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                      xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+                      Title="Opciones"
+                      Height="450" Width="500"
+                      Background="{StaticResource BrushBgDark}"
+                      Foreground="{StaticResource BrushTextPrimary}"
+                      WindowStartupLocation="CenterOwner"
+                      GlowBrush="{StaticResource BrushAccentGold}"
+                      BorderBrush="{StaticResource BrushBorder}"
+                      ResizeMode="NoResize"
+                      ShowIconOnTitleBar="False">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="OPCIONES" Style="{StaticResource TitleTextBlock}" Margin="0,0,0,16" />
+        <Separator Style="{StaticResource DecorativeSeparator}" Margin="0,0,0,16" />
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Style="{StaticResource StyledScrollViewer}">
+            <StackPanel>
+                <!-- Audio -->
+                <Border Style="{StaticResource PanelBorder}" Padding="16" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="🔊 AUDIO" Style="{StaticResource HeaderTextBlock}" Margin="0,0,0,12" />
+
+                        <StackPanel Margin="0,8">
+                            <TextBlock Text="Volumen Efectos (SFX)" Margin="0,0,0,4" />
+                            <Slider x:Name="SfxVolumeSlider"
+                                    Minimum="0" Maximum="1" Value="{Binding SfxVolume, Mode=TwoWay}"
+                                    TickFrequency="0.1" IsSnapToTickEnabled="True"
+                                    Style="{StaticResource StyledSlider}" />
+                        </StackPanel>
+
+                        <StackPanel Margin="0,8">
+                            <TextBlock Text="Volumen Música" Margin="0,0,0,4" />
+                            <Slider x:Name="MusicVolumeSlider"
+                                    Minimum="0" Maximum="1" Value="{Binding MusicVolume, Mode=TwoWay}"
+                                    TickFrequency="0.1" IsSnapToTickEnabled="True"
+                                    Style="{StaticResource StyledSlider}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- UI -->
+                <Border Style="{StaticResource PanelBorder}" Padding="16" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="🖥 INTERFAZ" Style="{StaticResource HeaderTextBlock}" Margin="0,0,0,12" />
+
+                        <StackPanel Margin="0,8">
+                            <TextBlock Text="Escala de UI" Margin="0,0,0,4" />
+                            <Slider x:Name="UiScaleSlider"
+                                    Minimum="0.75" Maximum="1.5" Value="{Binding UiScale, Mode=TwoWay}"
+                                    TickFrequency="0.05" IsSnapToTickEnabled="True"
+                                    Style="{StaticResource StyledSlider}" />
+                            <TextBlock x:Name="UiScaleValue" Text="{Binding UiScale, StringFormat='{}{0:P0}'}"
+                                       Style="{StaticResource MonoTextBlock}" HorizontalAlignment="Right" Margin="0,4,0,0" />
+                        </StackPanel>
+
+                        <CheckBox x:Name="ShowTooltipsCheck"
+                                  Content="Mostrar tooltips enriquecidos"
+                                  IsChecked="{Binding ShowTooltips, Mode=TwoWay}"
+                                  Style="{StaticResource StyledCheckBox}"
+                                  Margin="0,8" />
+
+                        <CheckBox x:Name="TypewriterCheck"
+                                  Content="Efecto máquina de escribir en narrativa"
+                                  IsChecked="{Binding TypewriterEffect, Mode=TwoWay}"
+                                  Style="{StaticResource StyledCheckBox}"
+                                  Margin="0,8" />
+
+                        <StackPanel Margin="0,8" Visibility="{Binding TypewriterEffect, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Text="Velocidad máquina de escribir (ms/char)" Margin="0,0,0,4" />
+                            <Slider x:Name="TypewriterSpeedSlider"
+                                    Minimum="10" Maximum="100" Value="{Binding TypewriterSpeed, Mode=TwoWay}"
+                                    TickFrequency="5" IsSnapToTickEnabled="True"
+                                    Style="{StaticResource StyledSlider}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Gameplay -->
+                <Border Style="{StaticResource PanelBorder}" Padding="16">
+                    <StackPanel>
+                        <TextBlock Text="🎮 JUGABILIDAD" Style="{StaticResource HeaderTextBlock}" Margin="0,0,0,12" />
+                        <TextBlock Text="Más opciones próximamente (dificultad, permadeath, etc.)"
+                                   Opacity="0.6" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Content="Cancelar" Click="BtnCancel_Click" Style="{StaticResource BaseButton}" Width="100" Margin="0,0,8,0" IsCancel="True" />
+            <Button Content="Aplicar" Click="BtnApply_Click" Style="{StaticResource PrimaryButton}" Width="100" IsDefault="True" />
+        </StackPanel>
+    </Grid>
+</controls:MetroWindow>

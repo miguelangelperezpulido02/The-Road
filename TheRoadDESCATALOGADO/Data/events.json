@@ -1,0 +1,64 @@
+{
+  "bigEvents": [
+    {
+      "text": "Emboscada en la autopista: te tirotean desde un viaducto y escapas arrastr\u00e1ndote (-20 HP).",
+      "effects": { "hp": -20 }
+    },
+    {
+      "text": "Convoy militar abandonado. Entre los veh\u00edculos hallas chatarra y un bid\u00f3n de gasolina (+2 objetos).",
+      "effects": { "inventory": ["Chatarra", "Bid\u00f3n de gasolina"] }
+    },
+    {
+      "text": "Un puesto de bandidos te cobra peaje. Pagas con latas y un golpe de culata (-1 comida, -12 HP).",
+      "effects": { "food": -1, "hp": -12 }
+    },
+    {
+      "text": "La autopista est\u00e1 cortada por un derrumbe. Das un rodeo de un d\u00eda entero (+1 d\u00eda, -1 comida, -1 agua).",
+      "effects": { "days": 1, "food": -1, "water": -1 }
+    },
+    {
+      "text": "Tormenta de ceniza: avanzas a ciegas durante horas (-1 agua, -8 HP).",
+      "effects": { "water": -1, "hp": -8 }
+    }
+  ],
+  "minorEvents": [
+    {
+      "text": "Algo se mueve entre los \u00e1rboles. Corres y te raspas (-4 HP).",
+      "effects": { "hp": -4 }
+    },
+    {
+      "text": "Encuentras chatarra \u00fatil en el arc\u00e9n.",
+      "effects": { "inventory": ["Chatarra"] }
+    },
+    {
+      "text": "Un perro flaco te roba una lata de la mochila (-1 comida).",
+      "effects": { "food": -1 }
+    },
+    {
+      "text": "El bid\u00f3n se queda sin agua durante la marcha (-1 agua).",
+      "effects": { "water": -1 }
+    },
+    {
+      "text": "Retrocesos de una farmacia: encuentras una dosis de medicina (+1 medicina).",
+      "effects": { "medicine": 1 }
+    }
+  ],
+  "scavengeEvents": [
+    {
+      "text": "Chapuceas entre veh\u00edculos oxidados y llenas un bid\u00f3n (+1 gasolina en inventario).",
+      "effects": { "inventory": ["Bid\u00f3n de gasolina"] }
+    },
+    {
+      "text": "Recoges chatarra que luego podr\u00e1s cambiar (+1 chatarra).",
+      "effects": { "inventory": ["Chatarra"] }
+    },
+    {
+      "text": "Encuentras una conserva intacta en una despensa (+1 comida).",
+      "effects": { "food": 1 }
+    },
+    {
+      "text": "Nada de valor aqu\u00ed. Solo polvo y silencio.",
+      "effects": {}
+    }
+  ]
+}

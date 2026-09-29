@@ -8,11 +8,15 @@ public static class ItemsService
     public const int GasolinaPorBidon = 5;
     public const int HPporVendaje = 10;
 
+    /// <summary>Huecos físicos del inventario (8x8).</summary>
+    public const int Capacidad = 64;
+
     public static bool EsUsable(string item)
         => item is "Bidón de gasolina" or "Vendaje" or "Lata de conservas";
 
     public static string? Usar(string item, Player p)
     {
+        if (!EsUsable(item)) return null;
         if (!p.Inventario.Remove(item)) return null;
 
         switch (item)

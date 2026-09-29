@@ -5,17 +5,17 @@
                       xmlns:local="clr-namespace:TheRoad"
                       xmlns:vm="clr-namespace:TheRoad.ViewModels"
                       Title="The Road — Crear Superviviente"
-                      Height="700" Width="1000"
+                       Height="700" Width="1000"
                       MinHeight="620" MinWidth="880"
                       Background="{StaticResource BrushBgDark}"
                       Foreground="{StaticResource BrushTextPrimary}"
-                      WindowStartupLocation="CenterScreen"
+                       WindowStartupLocation="CenterScreen"
                       GlowBrush="{StaticResource BrushAccentGold}"
                       BorderThickness="1"
                       BorderBrush="{StaticResource BrushBorder}"
                       TitleForeground="{StaticResource BrushAccentGold}"
                       TitleAlignment="Left"
-                      SaveWindowPosition="True"
+                      SaveWindowPosition="False"
                       ShowIconOnTitleBar="False">
 
     <controls:MetroWindow.RightWindowCommands>

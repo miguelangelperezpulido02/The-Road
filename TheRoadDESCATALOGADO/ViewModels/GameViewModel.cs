@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
 using TheRoad.Logic;
 using TheRoad.Models;
 
@@ -108,7 +110,7 @@ public class GameViewModel : INotifyPropertyChanged
     private readonly List<Location> _lugares;
     private readonly List<Route> _rutas;
 
-    private string _vista = "Historia";
+    private string _vista = "Vista";
     private string _narrativa = string.Empty;
     private string? _destinoSelId;
     private string? _opcionSel;
@@ -146,22 +148,34 @@ public class GameViewModel : INotifyPropertyChanged
         _resourceBars.Add(new ResourceBarViewModel("Medicina", "💊", 10, _state.Player.Medicina));
     }
 
-    private void InitializeInventory()
-    {
-        var grouped = _state.Player.Inventario
-            .GroupBy(x => x)
-            .Select(g => new InventoryItemViewModel(
-                g.Key,
-                GetItemIcon(g.Key),
-                g.Count(),
-                ItemsService.EsUsable(g.Key),
-                GetItemCategory(g.Key)))
-            .OrderBy(x => x.Category)
-            .ThenBy(x => x.Name)
-            .ToList();
+    private void InitializeInventory() => RebuildInventory();
 
-        foreach (var item in grouped)
-            _inventoryItems.Add(item);
+    /// <summary>Reconstruye las 64 celdas: cada instancia de objeto ocupa una celda física.</summary>
+    private void RebuildInventory()
+    {
+        _inventoryItems.Clear();
+
+        foreach (var group in _state.Player.Inventario
+            .GroupBy(x => x)
+            .OrderBy(g => GetItemCategory(g.Key))
+            .ThenBy(g => g.Key))
+        {
+            for (int i = 0; i < group.Count() && _inventoryItems.Count < InventoryCapacity; i++)
+                _inventoryItems.Add(new InventoryItemViewModel(
+                    group.Key,
+                    GetItemIcon(group.Key),
+                    1,
+                    ItemsService.EsUsable(group.Key),
+                    GetItemCategory(group.Key)));
+        }
+
+        PadInventory();
+    }
+
+    private void PadInventory()
+    {
+        while (_inventoryItems.Count < InventoryCapacity)
+            _inventoryItems.Add(new InventoryItemViewModel("", "", 0, false, ""));
     }
 
     private static string GetItemIcon(string name) => name switch
@@ -203,18 +217,12 @@ public class GameViewModel : INotifyPropertyChanged
             };
         }
 
-        var grouped = _state.Player.Inventario
-            .GroupBy(x => x)
-            .ToDictionary(g => g.Key, g => g.Count());
-
-        foreach (var item in _inventoryItems)
-        {
-            item.SetCount(grouped.GetValueOrDefault(item.Name, 0));
-        }
+        RebuildInventory();
 
         SyncDiario();
 
         OnPropertyChanged(nameof(NombreJugador));
+        OnPropertyChanged(nameof(NivelJugador));
         OnPropertyChanged(nameof(Foto));
         OnPropertyChanged(nameof(DiaActual));
         OnPropertyChanged(nameof(LugarActual));
@@ -230,7 +238,7 @@ public class GameViewModel : INotifyPropertyChanged
     public int InventoryRows => 8;
     public int InventoryCols => 8;
     public int InventoryCapacity => InventoryRows * InventoryCols;
-    public int InventoryUsed => _inventoryItems.Sum(x => x.Count);
+    public int InventoryUsed => _inventoryItems.Count(x => !string.IsNullOrEmpty(x.Name));
     public double InventoryFillRatio => (double)InventoryUsed / InventoryCapacity;
 
     // --- Notifications ---
@@ -238,10 +246,19 @@ public class GameViewModel : INotifyPropertyChanged
 
     public void AddNotification(string message, NotificationType type = NotificationType.Info)
     {
-        _notifications.Insert(0, new NotificationViewModel(message, type));
+        var notification = new NotificationViewModel(message, type);
+        _notifications.Insert(0, notification);
         while (_notifications.Count > 10)
             _notifications.RemoveAt(_notifications.Count - 1);
         OnPropertyChanged(nameof(Notifications));
+
+        // Se auto-descarta pasados unos segundos (en el hilo de UI).
+        Task.Delay(TimeSpan.FromSeconds(5)).ContinueWith(_ =>
+            Application.Current?.Dispatcher.Invoke(() =>
+            {
+                if (_notifications.Remove(notification))
+                    OnPropertyChanged(nameof(Notifications));
+            }), TaskScheduler.Default);
     }
 
     // --- Travel Animation ---
@@ -265,6 +282,7 @@ public class GameViewModel : INotifyPropertyChanged
 
     // --- Basic Properties ---
     public string NombreJugador => _state.Player.Name;
+    public int NivelJugador => _state.Player.Level;
     public string? Foto => _state.Player.PhotoPath;
     public string Stats => $"FUE {_state.Player.Fuerza}  DES {_state.Player.Destreza}  RES {_state.Player.Resistencia}";
     public string Stats2 => $"INT {_state.Player.Inteligencia}  PER {_state.Player.Percepcion}  CAR {_state.Player.Carisma}";
@@ -485,6 +503,11 @@ public class GameViewModel : INotifyPropertyChanged
 
     public void DebugBidon()
     {
+        if (_state.Player.Inventario.Count >= ItemsService.Capacidad)
+        {
+            AddNotification("[DEBUG] Inventario lleno.", NotificationType.Warning);
+            return;
+        }
         _state.Player.Inventario.Add("Bidón de gasolina");
         AddNotification("[DEBUG] Bidón añadido al inventario.", NotificationType.Info);
         SyncFromState();

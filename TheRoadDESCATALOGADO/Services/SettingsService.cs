@@ -17,7 +17,6 @@ namespace TheRoad.Services
         private float _sfxVolume = 0.7f;
         private float _musicVolume = 0.4f;
         private bool _fullscreen = false;
-        private double _uiScale = 1.0;
         private bool _showTooltips = true;
         private bool _typewriterEffect = true;
         private int _typewriterSpeed = 30;
@@ -56,12 +55,6 @@ namespace TheRoad.Services
             set { _fullscreen = value; OnPropertyChanged(); }
         }
 
-        public double UiScale
-        {
-            get => _uiScale;
-            set { _uiScale = Math.Clamp(value, 0.75, 1.5); OnPropertyChanged(); }
-        }
-
         public bool ShowTooltips
         {
             get => _showTooltips;
@@ -94,7 +87,6 @@ namespace TheRoad.Services
                     SfxVolume = _sfxVolume,
                     MusicVolume = _musicVolume,
                     Fullscreen = _fullscreen,
-                    UiScale = _uiScale,
                     ShowTooltips = _showTooltips,
                     TypewriterEffect = _typewriterEffect,
                     TypewriterSpeed = _typewriterSpeed
@@ -118,7 +110,6 @@ namespace TheRoad.Services
                     SfxVolume = 0.7f,
                     MusicVolume = 0.4f,
                     Fullscreen = false,
-                    UiScale = 1.0,
                     ShowTooltips = true,
                     TypewriterEffect = true,
                     TypewriterSpeed = 30
@@ -130,7 +121,6 @@ namespace TheRoad.Services
                     _sfxVolume = data.SfxVolume;
                     _musicVolume = data.MusicVolume;
                     _fullscreen = data.Fullscreen;
-                    _uiScale = data.UiScale;
                     _showTooltips = data.ShowTooltips;
                     _typewriterEffect = data.TypewriterEffect;
                     _typewriterSpeed = data.TypewriterSpeed;
@@ -142,6 +132,30 @@ namespace TheRoad.Services
             catch { }
         }
 
+        /// <summary>Aplica un modo de ventana (tamaño o pantalla completa) a la ventana
+        /// indicada y lo persiste. Pantalla completa = maximizada (no toca la resolución
+        /// del monitor, no reinicia nada).</summary>
+        public void ApplyWindowMode(Window window, double width, double height, bool fullscreen)
+        {
+            Fullscreen = fullscreen;
+            if (fullscreen)
+            {
+                _windowSettings.IsMaximized = true;
+                window.WindowState = WindowState.Maximized;
+            }
+            else
+            {
+                _windowSettings.Width = width;
+                _windowSettings.Height = height;
+                _windowSettings.IsMaximized = false;
+                if (window.WindowState == WindowState.Maximized)
+                    window.WindowState = WindowState.Normal;
+                window.Width = width;
+                window.Height = height;
+            }
+            Save();
+        }
+
         public void ApplyWindowState(Window window)
         {
             if (_windowSettings.Width > 0 && _windowSettings.Height > 0)
@@ -151,10 +165,16 @@ namespace TheRoad.Services
             }
             if (_windowSettings.Left >= 0 && _windowSettings.Top >= 0)
             {
+                window.WindowStartupLocation = WindowStartupLocation.Manual;
                 window.Left = _windowSettings.Left;
                 window.Top = _windowSettings.Top;
             }
-            if (_windowSettings.IsMaximized)
+            else
+            {
+                // Sin posición guardada: abrir centrada en pantalla.
+                window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            }
+            if (_fullscreen || _windowSettings.IsMaximized)
                 window.WindowState = WindowState.Maximized;
 
             window.Loaded += (_, _) =>
@@ -174,10 +194,12 @@ namespace TheRoad.Services
                 _windowSettings.Left = window.Left;
                 _windowSettings.Top = window.Top;
                 _windowSettings.IsMaximized = false;
+                _fullscreen = false;
             }
             else if (window.WindowState == WindowState.Maximized)
             {
                 _windowSettings.IsMaximized = true;
+                _fullscreen = true;
             }
             Save();
         }
@@ -189,8 +211,8 @@ namespace TheRoad.Services
 
     public class WindowSettings
     {
-        public double Width { get; set; } = 1000;
-        public double Height { get; set; } = 660;
+        public double Width { get; set; } = 1280;
+        public double Height { get; set; } = 720;
         public double Left { get; set; } = -1;
         public double Top { get; set; } = -1;
         public bool IsMaximized { get; set; } = false;

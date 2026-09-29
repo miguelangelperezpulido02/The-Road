@@ -16,6 +16,9 @@ public class Player
     public int Percepcion { get; set; } = 1;
     public int Carisma { get; set; } = 1;
 
+    // Nivel del superviviente (futura implementación: experiencia/progresión).
+    public int Level { get; set; } = 1;
+
     // Estado para la pantalla principal. Valores iniciales los pone GameData.
     public int HP { get; set; } = 100;
     public int Comida { get; set; } = 4;

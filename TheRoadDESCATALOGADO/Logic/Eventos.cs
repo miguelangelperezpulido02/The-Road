@@ -28,9 +28,19 @@ public static class Eventos
         s.Player.Medicina = Math.Max(0, s.Player.Medicina + e.Medicine);
         s.Dia += e.Days;
 
+        bool inventarioLleno = false;
         foreach (var item in e.Inventory)
+        {
+            if (s.Player.Inventario.Count >= ItemsService.Capacidad)
+            {
+                inventarioLleno = true;
+                break;
+            }
             s.Player.Inventario.Add(item);
+        }
 
-        return evt.Text;
+        return inventarioLleno
+            ? evt.Text + " (El inventario está lleno: algo se ha quedado atrás.)"
+            : evt.Text;
     }
 }

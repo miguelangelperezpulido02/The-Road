@@ -1,9 +1,9 @@
-﻿using System.Windows;
+﻿using System.IO;
+using System.Windows;
 using System.Windows.Controls;
 using MahApps.Metro.Controls;
 using Microsoft.Win32;
 using TheRoad.Converters;
-using TheRoad.Services;
 using TheRoad.ViewModels;
 
 namespace TheRoad;
@@ -22,7 +22,8 @@ public partial class MainWindow : MetroWindow
             Source = new Uri("pack://application:,,,/TheRoad;component/Converters/CommonConverters.xaml", UriKind.Absolute)
         });
 
-        SettingsService.Instance.ApplyWindowState(this);
+        // El creador usa siempre su tamaño de diseño (1000x700) y abre centrado.
+        WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
 #if DEBUG
         BtnDebug.Visibility = Visibility.Visible;

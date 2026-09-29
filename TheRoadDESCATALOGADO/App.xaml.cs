@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.IO;
+using System.Windows;
 using MahApps.Metro.Controls;
 using TheRoad.Services;
 
@@ -9,6 +10,34 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
+        // Log global de errores: en vez de cerrarse en silencio, se registra y se muestra
+        string crashLog = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "TheRoad", "crash.log");
+
+        DispatcherUnhandledException += (_, ex) =>
+        {
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(crashLog)!);
+                File.AppendAllText(crashLog, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}]\n{ex.Exception}\n\n");
+            }
+            catch { }
+            ex.Handled = true;
+            MessageBox.Show($"{ex.Exception.Message}\n\n{ex.Exception.StackTrace}",
+                "The Road — Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        };
+
+        AppDomain.CurrentDomain.UnhandledException += (_, ex) =>
+        {
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(crashLog)!);
+                File.AppendAllText(crashLog, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] (no-UI)\n{ex.ExceptionObject}\n\n");
+            }
+            catch { }
+        };
 
         // Initialize services
         _ = SettingsService.Instance;

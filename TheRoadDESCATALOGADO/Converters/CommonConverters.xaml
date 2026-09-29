@@ -17,4 +17,5 @@
     <conv:NotificationTypeToColorConverter x:Key="NotificationTypeToColor" />
     <conv:HalfConverter x:Key="HalfConverter" />
     <conv:NullToVisibilityConverter x:Key="NullToVis" />
+    <conv:SliderWidthConverter x:Key="SliderWidthConverter" />
 </ResourceDictionary>

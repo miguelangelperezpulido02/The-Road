@@ -53,13 +53,15 @@
                         <TextBlock Text="🖥 INTERFAZ" Style="{StaticResource HeaderTextBlock}" Margin="0,0,0,12" />
 
                         <StackPanel Margin="0,8">
-                            <TextBlock Text="Escala de UI" Margin="0,0,0,4" />
-                            <Slider x:Name="UiScaleSlider"
-                                    Minimum="0.75" Maximum="1.5" Value="{Binding UiScale, Mode=TwoWay}"
-                                    TickFrequency="0.05" IsSnapToTickEnabled="True"
-                                    Style="{StaticResource StyledSlider}" />
-                            <TextBlock x:Name="UiScaleValue" Text="{Binding UiScale, StringFormat='{}{0:P0}'}"
-                                       Style="{StaticResource MonoTextBlock}" HorizontalAlignment="Right" Margin="0,4,0,0" />
+                            <TextBlock Text="Tamaño de ventana" Margin="0,0,0,4" />
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="BtnSizeSmall" Content="1000 × 700" Click="BtnSizeSmall_Click"
+                                        Style="{StaticResource BaseButton}" Width="120" Margin="0,0,8,0" />
+                                <Button x:Name="BtnSizeLarge" Content="1280 × 720" Click="BtnSizeLarge_Click"
+                                        Style="{StaticResource BaseButton}" Width="120" Margin="0,0,8,0" />
+                                <Button x:Name="BtnFullscreen" Content="Fullscreen" Click="BtnFullscreen_Click"
+                                        Style="{StaticResource BaseButton}" Width="120" />
+                            </StackPanel>
                         </StackPanel>
 
                         <CheckBox x:Name="ShowTooltipsCheck"

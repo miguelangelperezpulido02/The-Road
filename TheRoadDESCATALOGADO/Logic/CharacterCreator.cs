@@ -1,5 +1,8 @@
 using System;
+using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Text;
 using TheRoad.Models;
 
 namespace TheRoad.Logic;
@@ -16,28 +19,35 @@ public static class CharacterCreator
     // Nombres de stats para no repetir strings por la UI.
     public static readonly string[] Stats = ["Fuerza", "Destreza", "Resistencia", "Inteligencia", "Percepcion", "Carisma"];
 
-    public static int GetStat(Player p, string stat) => stat switch
+    // Compara ignorando acentos y mayúsculas: la UI muestra "Percepción"
+    // pero la lógica usa "Percepcion". Ambas deben casar.
+    private static string Norm(string s) =>
+        string.Concat(s.Normalize(NormalizationForm.FormD)
+            .Where(c => CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark))
+            .ToLowerInvariant();
+
+    public static int GetStat(Player p, string stat) => Norm(stat) switch
     {
-        "Fuerza" => p.Fuerza,
-        "Destreza" => p.Destreza,
-        "Resistencia" => p.Resistencia,
-        "Inteligencia" => p.Inteligencia,
-        "Percepcion" => p.Percepcion,
-        "Carisma" => p.Carisma,
+        "fuerza" => p.Fuerza,
+        "destreza" => p.Destreza,
+        "resistencia" => p.Resistencia,
+        "inteligencia" => p.Inteligencia,
+        "percepcion" => p.Percepcion,
+        "carisma" => p.Carisma,
         _ => MinStat
     };
 
     public static void SetStat(Player p, string stat, int valor)
     {
         valor = Math.Clamp(valor, MinStat, MaxStat);
-        switch (stat)
+        switch (Norm(stat))
         {
-            case "Fuerza": p.Fuerza = valor; break;
-            case "Destreza": p.Destreza = valor; break;
-            case "Resistencia": p.Resistencia = valor; break;
-            case "Inteligencia": p.Inteligencia = valor; break;
-            case "Percepcion": p.Percepcion = valor; break;
-            case "Carisma": p.Carisma = valor; break;
+            case "fuerza": p.Fuerza = valor; break;
+            case "destreza": p.Destreza = valor; break;
+            case "resistencia": p.Resistencia = valor; break;
+            case "inteligencia": p.Inteligencia = valor; break;
+            case "percepcion": p.Percepcion = valor; break;
+            case "carisma": p.Carisma = valor; break;
         }
     }
 
@@ -90,14 +100,14 @@ public static class CharacterCreator
         return p;
     }
 
-    public static string Descripcion(string stat) => stat switch
+    public static string Descripcion(string stat) => Norm(stat) switch
     {
-        "Fuerza" => "Combate cuerpo a cuerpo y mover obstáculos.",
-        "Destreza" => "Huir, sigilo y acciones rápidas.",
-        "Resistencia" => "Aguantar hambre, heridas y marchas largas.",
-        "Inteligencia" => "Medicina, mecánica y resolver problemas.",
-        "Percepcion" => "Detectar peligros y encontrar recursos.",
-        "Carisma" => "Persuadir y comerciar con otros supervivientes.",
+        "fuerza" => "Combate cuerpo a cuerpo y mover obstáculos.",
+        "destreza" => "Huir, sigilo y acciones rápidas.",
+        "resistencia" => "Aguantar hambre, heridas y marchas largas.",
+        "inteligencia" => "Medicina, mecánica y resolver problemas.",
+        "percepcion" => "Detectar peligros y encontrar recursos.",
+        "carisma" => "Persuadir y comerciar con otros supervivientes.",
         _ => string.Empty
     };
 }

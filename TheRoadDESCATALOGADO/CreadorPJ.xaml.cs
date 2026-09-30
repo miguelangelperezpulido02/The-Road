@@ -8,11 +8,11 @@ using TheRoad.ViewModels;
 
 namespace TheRoad;
 
-public partial class MainWindow : MetroWindow
+public partial class CreadorPJWindow : MetroWindow
 {
     private readonly CharacterCreatorViewModel _vm = new();
 
-    public MainWindow()
+    public CreadorPJWindow()
     {
         InitializeComponent();
         DataContext = _vm;

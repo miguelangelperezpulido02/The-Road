@@ -23,7 +23,7 @@ public partial class MapView : UserControl
     private const double MaxScale = 3.0;
 
     private readonly Dictionary<string, MapNode> _nodeControls = new();
-    private readonly Dictionary<string, Path> _routePaths = new();
+    private readonly Dictionary<string, (Route Ruta, Path Path)> _routePaths = new();
 
     // Travel animation
     private Storyboard? _travelStoryboard;
@@ -91,7 +91,7 @@ public partial class MapView : UserControl
 
             var path = CreateRoutePath(a, b, r, isSelected);
             RoutesCanvas.Children.Add(path);
-            _routePaths[$"{r.FromId}-{r.ToId}"] = path;
+            _routePaths[$"{r.FromId}-{r.ToId}"] = (r, path);
         }
 
         // Draw nodes
@@ -236,18 +236,13 @@ public partial class MapView : UserControl
         // Update routes
         foreach (var kvp in _routePaths)
         {
-            var parts = kvp.Key.Split('-');
-            var r = vm.Rutas.FirstOrDefault(x =>
-                (x.FromId == parts[0] && x.ToId == parts[1]) ||
-                (x.FromId == parts[1] && x.ToId == parts[0]));
-
-            if (r == null) continue;
+            var r = kvp.Value.Ruta;
 
             bool isSelected = destino != null &&
                 ((r.FromId == vm.CurrentId && r.ToId == destino) ||
                  (r.ToId == vm.CurrentId && r.FromId == destino));
 
-            var path = kvp.Value;
+            var path = kvp.Value.Path;
             if (isSelected)
             {
                 path.Stroke = new SolidColorBrush(Color.FromRgb(0xD8, 0xA5, 0x45));
@@ -266,8 +261,10 @@ public partial class MapView : UserControl
         UpdateInfoPanel(vm, destino);
     }
 
-    private void UpdateMinimap(GameViewModel vm)
+    private void UpdateMinimap(GameViewModel? vm)
     {
+        if (vm == null) return;
+
         MinimapCanvas.Children.Clear();
 
         double scaleX = MinimapCanvas.Width / MapCanvas.Width;
@@ -405,7 +402,7 @@ public partial class MapView : UserControl
         MapTranslateTransform.Y = mousePos.Y - (mousePos.Y - MapTranslateTransform.Y) * scaleRatio;
 
         ClampTranslation();
-        UpdateMinimap(_vm!);
+        UpdateMinimap(_vm);
     }
 
     private void MapBorder_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -439,7 +436,7 @@ public partial class MapView : UserControl
 
         ClampTranslation();
         _lastPanPoint = current;
-        UpdateMinimap(_vm!);
+        UpdateMinimap(_vm);
     }
 
     private void MapBorder_MouseLeave(object sender, MouseEventArgs e)
@@ -473,7 +470,7 @@ public partial class MapView : UserControl
         MapScaleTransform.ScaleX = _currentScale;
         MapScaleTransform.ScaleY = _currentScale;
         ClampTranslation();
-        UpdateMinimap(_vm!);
+        UpdateMinimap(_vm);
     }
 
     private void BtnZoomOut_Click(object sender, RoutedEventArgs e)
@@ -482,7 +479,7 @@ public partial class MapView : UserControl
         MapScaleTransform.ScaleX = _currentScale;
         MapScaleTransform.ScaleY = _currentScale;
         ClampTranslation();
-        UpdateMinimap(_vm!);
+        UpdateMinimap(_vm);
     }
 
     private void BtnResetView_Click(object sender, RoutedEventArgs e)
@@ -497,7 +494,7 @@ public partial class MapView : UserControl
         MapScaleTransform.ScaleY = 1.0;
         MapTranslateTransform.X = 0;
         MapTranslateTransform.Y = 0;
-        UpdateMinimap(_vm!);
+        UpdateMinimap(_vm);
     }
 
     // ============================================================

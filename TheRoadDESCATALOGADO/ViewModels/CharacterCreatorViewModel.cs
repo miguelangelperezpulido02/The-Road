@@ -88,7 +88,7 @@ public class CharacterCreatorViewModel : INotifyPropertyChanged
     public string Nombre
     {
         get => _player.Name;
-        set { _player.Name = value.TrimStart(); Avisar(); }
+        set { _player.Name = value?.TrimStart() ?? ""; Avisar(); }
     }
 
     public string? PhotoPath

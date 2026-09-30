@@ -278,20 +278,30 @@ public class GameViewModel : INotifyPropertyChanged
             _notifications.RemoveAt(_notifications.Count - 1);
         OnPropertyChanged(nameof(Notifications));
 
-        // Se auto-descarta pasados unos segundos (en el hilo de UI).
-        Task.Delay(TimeSpan.FromSeconds(5)).ContinueWith(_ =>
-            Application.Current?.Dispatcher.Invoke(() =>
+        // Se auto-descarta pasados unos segundos, tolerando el cierre de la app.
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(TimeSpan.FromSeconds(5));
+            try
             {
-                if (_notifications.Remove(notification))
-                    OnPropertyChanged(nameof(Notifications));
-            }), TaskScheduler.Default);
+                Application.Current?.Dispatcher.InvokeAsync(() =>
+                {
+                    if (_notifications.Remove(notification))
+                        OnPropertyChanged(nameof(Notifications));
+                });
+            }
+            catch
+            {
+                // App cerrándose: la notificación ya no importa.
+            }
+        });
     }
 
     // --- Travel Animation ---
     public bool IsTraveling
     {
         get => _isTraveling;
-        private set { _isTraveling = value; OnPropertyChanged(nameof(IsTraveling)); }
+        private set { _isTraveling = value; OnPropertyChanged(nameof(IsTraveling)); OnPropertyChanged(nameof(PuedeViajar)); }
     }
 
     public double TravelProgress
@@ -316,7 +326,7 @@ public class GameViewModel : INotifyPropertyChanged
     public Location LugarActual
         => _lugares.FirstOrDefault(l => l.Id == _state.CurrentLocationId)
             ?? _lugares.FirstOrDefault()
-            ?? throw new InvalidOperationException("No hay lugares cargados.");
+            ?? Location.Unknown;
     public IReadOnlyList<Location> Lugares => _lugares;
     public IReadOnlyList<Route> Rutas => _rutas;
     public string CurrentId => _state.CurrentLocationId;
@@ -436,6 +446,7 @@ public class GameViewModel : INotifyPropertyChanged
     {
         get
         {
+            if (IsTraveling) return false;
             var r = RutaAlDestino();
             return r != null && TravelService.PuedeViajar(_state, r) == null;
         }
@@ -470,7 +481,7 @@ public class GameViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(Opciones));
     }
 
-    public async void Viajar()
+    public async Task ViajarAsync()
     {
         var r = RutaAlDestino() ?? RutaDeOpcion(_opcionSel);
         if (r == null) { Narrativa = "Selecciona un destino primero."; return; }
@@ -478,47 +489,58 @@ public class GameViewModel : INotifyPropertyChanged
         string? bloqueo = TravelService.PuedeViajar(_state, r);
         if (bloqueo != null) { Narrativa = bloqueo; return; }
 
+        if (IsTraveling) return; // Doble clic: el viaje en curso manda.
         IsTraveling = true;
         TravelProgress = 0;
 
-        // Animar progreso
-        for (int i = 0; i <= 100; i += 5)
+        try
         {
-            TravelProgress = i / 100.0;
-            await Task.Delay(15);
+            // Animar progreso
+            for (int i = 0; i <= 100; i += 5)
+            {
+                TravelProgress = i / 100.0;
+                await Task.Delay(15);
+            }
+
+            var result = TravelService.Viajar(_state, r, _lugares);
+            LastTravelResult = result;
+
+            Narrativa = result.Narrative;
+            _destinoSelId = null;
+            _opcionSel = null;
+            RefrescarOpciones();
+            SyncFromState();
+
+            // Notificaciones por eventos
+            foreach (var evt in result.Events)
+            {
+                var type = evt.Contains("encuentras") || evt.Contains("hallan") || evt.Contains("+") ? NotificationType.Success :
+                           evt.Contains("pierdes") || evt.Contains("roba") || evt.Contains("-") ? NotificationType.Warning :
+                           NotificationType.Info;
+                AddNotification(evt, type);
+            }
+
+            if (_state.Player.HP <= 0)
+            {
+                Narrativa += "\n\nHas muerto. El viaje termina aquí.";
+                AddNotification("Has muerto. Fin del viaje.", NotificationType.Danger);
+            }
+
+            if (_state.Vehiculo <= 0)
+                AddNotification("El coche no anda (0/100). Repáralo con chatarra.", NotificationType.Danger);
+            else if (_state.Vehiculo < VehicleService.UmbralAviso)
+                AddNotification($"⚠ El coche está en las últimas ({VehiculoTexto}).", NotificationType.Warning);
         }
-
-        var result = TravelService.Viajar(_state, r, _lugares);
-        LastTravelResult = result;
-
-        Narrativa = result.Narrative;
-        _destinoSelId = null;
-        _opcionSel = null;
-        RefrescarOpciones();
-        SyncFromState();
-
-        // Notificaciones por eventos
-        foreach (var evt in result.Events)
+        catch (Exception ex)
         {
-            var type = evt.Contains("encuentras") || evt.Contains("hallan") || evt.Contains("+") ? NotificationType.Success :
-                       evt.Contains("pierdes") || evt.Contains("roba") || evt.Contains("-") ? NotificationType.Warning :
-                       NotificationType.Info;
-            AddNotification(evt, type);
+            Narrativa = "Error durante el viaje. El grupo se detiene a revisar el coche.";
+            AddNotification($"Error de viaje: {ex.Message}", NotificationType.Danger);
         }
-
-        if (_state.Player.HP <= 0)
+        finally
         {
-            Narrativa += "\n\nHas muerto. El viaje termina aquí.";
-            AddNotification("Has muerto. Fin del viaje.", NotificationType.Danger);
+            IsTraveling = false;
+            TravelProgress = 0;
         }
-
-        if (_state.Vehiculo <= 0)
-            AddNotification("El coche no anda (0/100). Repáralo con chatarra.", NotificationType.Danger);
-        else if (_state.Vehiculo < VehicleService.UmbralAviso)
-            AddNotification($"⚠ El coche está en las últimas ({VehiculoTexto}).", NotificationType.Warning);
-
-        IsTraveling = false;
-        TravelProgress = 0;
     }
 
     public void UsarItem(string? item)

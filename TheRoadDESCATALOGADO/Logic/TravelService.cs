@@ -105,9 +105,12 @@ public static class TravelService
 
         if (_rnd.Next(1, 101) <= ProbabilidadEvento(r))
         {
-            string evt = esLargo ? Eventos.EventoGrande(s) : Eventos.EventoMenor(s);
-            if (!string.IsNullOrEmpty(evt)) events.Add(evt);
-            texto += "\n" + evt;
+            string? evt = esLargo ? Eventos.EventoGrande(s) : Eventos.EventoMenor(s);
+            if (!string.IsNullOrEmpty(evt))
+            {
+                events.Add(evt);
+                texto += "\n" + evt;
+            }
         }
 
         if (destino.EsParada)

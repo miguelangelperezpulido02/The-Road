@@ -38,18 +38,17 @@ public partial class GameWindow : MetroWindow
 
     private async void BtnViajar_Click(object sender, RoutedEventArgs e)
     {
+        if (_vm.IsTraveling) return;
+
         // Mostrar overlay de viaje
         TravelOverlay.Visibility = Visibility.Visible;
-        TravelStatusText.Text = "Preparando vehículo...";
+        TravelStatusText.Text = "En camino...";
 
-        // El VM maneja la animación internamente
-        _vm.Viajar();
+        // Esperar al viaje: el overlay cubre exactamente su duración.
+        await _vm.ViajarAsync();
 
-        // Actualizar UI post-viaje
+        // Actualizar UI post-viaje, ya en destino
         VistaMapa.Refrescar();
-
-        // Ocultar overlay tras un momento
-        await Task.Delay(500);
         TravelOverlay.Visibility = Visibility.Collapsed;
     }
 

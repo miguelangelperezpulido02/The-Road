@@ -56,7 +56,7 @@ public partial class App : Application
         if (debug)
             new Views.GameWindow(Logic.GameData.PartidaDebug()).Show();
         else
-            new MainWindow().Show();
+            new CreadorPJWindow().Show();
     }
 
     protected override void OnExit(ExitEventArgs e)

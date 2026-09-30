@@ -62,6 +62,12 @@ public partial class GameWindow : MetroWindow
         }
     }
 
+    private void BtnReparar_Click(object sender, RoutedEventArgs e)
+    {
+        _vm.RepararVehiculo();
+        VistaMapa.Refrescar();
+    }
+
     private void BtnOptions_Click(object sender, RoutedEventArgs e)
     {
         var options = new OptionsWindow();

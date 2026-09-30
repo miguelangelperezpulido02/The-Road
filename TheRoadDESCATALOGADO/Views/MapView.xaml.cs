@@ -81,8 +81,9 @@ public partial class MapView : UserControl
         // Draw routes
         foreach (var r in vm.Rutas)
         {
-            var a = vm.Lugares.First(l => l.Id == r.FromId);
-            var b = vm.Lugares.First(l => l.Id == r.ToId);
+            var a = vm.Lugares.FirstOrDefault(l => l.Id == r.FromId);
+            var b = vm.Lugares.FirstOrDefault(l => l.Id == r.ToId);
+            if (a == null || b == null) continue; // Ruta colgada: se omite sin tumbar el mapa.
 
             bool isSelected = destino != null &&
                 ((r.FromId == vm.CurrentId && r.ToId == destino) ||
@@ -221,7 +222,8 @@ public partial class MapView : UserControl
         // Update nodes
         foreach (var kvp in _nodeControls)
         {
-            var l = vm.Lugares.First(x => x.Id == kvp.Key);
+            var l = vm.Lugares.FirstOrDefault(x => x.Id == kvp.Key);
+            if (l == null) continue; // Nodo de un dibujado anterior ya sin lugar: se omite.
             var node = kvp.Value;
 
             node.IsCurrent = l.Id == vm.CurrentId;
@@ -275,8 +277,9 @@ public partial class MapView : UserControl
         // Draw mini routes
         foreach (var r in vm.Rutas)
         {
-            var a = vm.Lugares.First(l => l.Id == r.FromId);
-            var b = vm.Lugares.First(l => l.Id == r.ToId);
+            var a = vm.Lugares.FirstOrDefault(l => l.Id == r.FromId);
+            var b = vm.Lugares.FirstOrDefault(l => l.Id == r.ToId);
+            if (a == null || b == null) continue; // Ruta colgada: se omite.
 
             var line = new Line
             {
@@ -505,8 +508,9 @@ public partial class MapView : UserControl
         var vm = _vm;
         if (vm == null) return;
 
-        var from = lugares.First(l => l.Id == (route.FromId == vm.CurrentId ? route.ToId : route.FromId));
-        var to = lugares.First(l => l.Id == (route.FromId == vm.CurrentId ? route.FromId : route.ToId));
+        var from = lugares.FirstOrDefault(l => l.Id == (route.FromId == vm.CurrentId ? route.ToId : route.FromId));
+        var to = lugares.FirstOrDefault(l => l.Id == (route.FromId == vm.CurrentId ? route.FromId : route.ToId));
+        if (from == null || to == null) return; // Extremos desconocidos: sin animación.
 
         _currentTravelRoute = route;
 

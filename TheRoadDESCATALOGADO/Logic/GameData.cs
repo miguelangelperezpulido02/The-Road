@@ -30,7 +30,7 @@ public static class GameData
         jugador.Agua = 4;
         jugador.Combustible = 20;
         jugador.Medicina = 1;
-        jugador.Inventario = ["Navaja", "Lata de conservas", "Vendaje", "Bidón de gasolina"];
+        jugador.Inventario = ["Navaja", "Lata de conservas", "Vendaje", "Bidón de gasolina", "Chatarra"];
 
         return new GameState
         {
@@ -38,6 +38,7 @@ public static class GameData
             CurrentLocationId = "dc",
             Visitados = ["dc"],
             Dia = 1,
+            Vehiculo = VehicleService.EstadoInicial,
             Diario = [$"Día 1: {jugador.Name} sale de Washington D.C."]
         };
     }

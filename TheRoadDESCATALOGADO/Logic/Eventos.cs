@@ -22,10 +22,10 @@ public static class Eventos
         var evt = eventos[_rnd.Next(eventos.Count)];
         var e = evt.Effects;
 
-        s.Player.HP = Math.Max(0, s.Player.HP + e.Hp);
-        s.Player.Comida = Math.Max(0, s.Player.Comida + e.Food);
-        s.Player.Agua = Math.Max(0, s.Player.Agua + e.Water);
-        s.Player.Medicina = Math.Max(0, s.Player.Medicina + e.Medicine);
+        s.Player.HP = Math.Clamp(s.Player.HP + e.Hp, 0, ItemsService.MaxHP);
+        s.Player.Comida = Math.Clamp(s.Player.Comida + e.Food, 0, ItemsService.MaxComida);
+        s.Player.Agua = Math.Clamp(s.Player.Agua + e.Water, 0, ItemsService.MaxAgua);
+        s.Player.Medicina = Math.Clamp(s.Player.Medicina + e.Medicine, 0, ItemsService.MaxMedicina);
         s.Dia += e.Days;
 
         bool inventarioLleno = false;

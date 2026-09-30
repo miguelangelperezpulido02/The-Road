@@ -53,6 +53,8 @@ public static class TravelService
     {
         if (CosteCombustible(r) > s.Player.Combustible)
             return $"Falta combustible (necesitas {CosteCombustible(r)}). Puedes repostar con un bidón del inventario.";
+        string? coche = VehicleService.PuedeViajar(s);
+        if (coche != null) return coche;
         if (s.Player.HP <= 0)
             return "Estás muerto. No puedes viajar.";
         return null;
@@ -61,7 +63,18 @@ public static class TravelService
     public static TravelResult Viajar(GameState s, Route r, List<Location> lugares)
     {
         string destinoId = OtroExtremo(r, s.CurrentLocationId);
-        var destino = lugares.First(l => l.Id == destinoId);
+        var destino = lugares.FirstOrDefault(l => l.Id == destinoId);
+        if (destino == null)
+        {
+            // Destino inexistente: se cancela sin mutar el estado.
+            return new TravelResult
+            {
+                Narrative = "Ese destino no existe en el mapa. Viaje cancelado.",
+                DestinationId = destinoId,
+                DestinationName = "Desconocido",
+                Route = r
+            };
+        }
         bool esLargo = r.Tipo == TipoViaje.Largo;
 
         int gas = CosteCombustible(r);
@@ -71,6 +84,13 @@ public static class TravelService
         s.Dia++;
         s.CurrentLocationId = destinoId;
         s.Visitados.Add(destinoId);
+
+        // Desgaste del vehículo + posible avería.
+        int estadoPrevio = s.Vehiculo;
+        s.Vehiculo = Math.Max(0, s.Vehiculo - VehicleService.DesgastePorViaje(r));
+        bool averia = VehicleService.HayAveria(estadoPrevio);
+        if (averia)
+            s.Vehiculo = Math.Max(0, s.Vehiculo - VehicleService.DanoAveria);
 
         string calzada = esLargo ? "de autopista" : "por carretera secundaria";
         string texto = $"Día {s.Dia}: {r.DistanceKm} km {calzada} hasta {destino.Name} (-{gas} gasolina, -1 día). Riesgo {r.RiesgoTexto}.\n{destino.Description}";
@@ -99,6 +119,11 @@ public static class TravelService
                 texto += $"\nParada en {destino.Name}: descansas y miras a ver qué se puede aprovechar.\n{chapuceo}";
             }
         }
+
+        texto += averia
+            ? $"\n⚠ Avería en ruta: el motor tose y pierdes piezas por el camino (-{VehicleService.DanoAveria} vehículo)."
+            : string.Empty;
+        texto += $"\nVehículo: {s.Vehiculo}/{VehicleService.MaxEstado}.";
 
         s.Diario.Add($"Día {s.Dia}: llegada a {destino.Name}.");
 

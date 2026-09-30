@@ -19,6 +19,7 @@
     <Color x:Key="ColorAccentGoldLight">#F0C565</Color>
     <Color x:Key="ColorAccentRust">#E07A5F</Color>
     <Color x:Key="ColorAccentRustDark">#C05A3F</Color>
+    <Color x:Key="ColorAccentRustLight">#F09A7F</Color>
     <Color x:Key="ColorAccentMoss">#6B8E5C</Color>
     <Color x:Key="ColorAccentMossDark">#4B6E3C</Color>
     <Color x:Key="ColorAccentSteel">#5A6A7A</Color>
@@ -40,6 +41,7 @@
     <SolidColorBrush x:Key="BrushAccentGoldLight" Color="{StaticResource ColorAccentGoldLight}" />
     <SolidColorBrush x:Key="BrushAccentRust" Color="{StaticResource ColorAccentRust}" />
     <SolidColorBrush x:Key="BrushAccentRustDark" Color="{StaticResource ColorAccentRustDark}" />
+    <SolidColorBrush x:Key="BrushAccentRustLight" Color="{StaticResource ColorAccentRustLight}" />
     <SolidColorBrush x:Key="BrushAccentMoss" Color="{StaticResource ColorAccentMoss}" />
     <SolidColorBrush x:Key="BrushAccentMossDark" Color="{StaticResource ColorAccentMossDark}" />
     <SolidColorBrush x:Key="BrushAccentSteel" Color="{StaticResource ColorAccentSteel}" />
@@ -416,13 +418,13 @@
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="2"
+                            Padding="1"
                             SnapsToDevicePixels="True">
                         <Grid x:Name="PART_Track">
                             <Border x:Name="PART_Indicator"
                                     Background="{TemplateBinding Foreground}"
                                     CornerRadius="1"
-                                    HorizontalAlignment="Left"
-                                    Margin="1" />
+                                    HorizontalAlignment="Left" />
                         </Grid>
                     </Border>
                 </ControlTemplate>

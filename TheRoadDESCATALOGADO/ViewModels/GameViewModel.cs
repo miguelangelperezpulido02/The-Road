@@ -228,10 +228,36 @@ public class GameViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(LugarActual));
         OnPropertyChanged(nameof(Stats));
         OnPropertyChanged(nameof(Stats2));
+        OnPropertyChanged(nameof(VehiculoEstado));
+        OnPropertyChanged(nameof(VehiculoTexto));
+        OnPropertyChanged(nameof(ChatarraCount));
+        OnPropertyChanged(nameof(PuedeReparar));
     }
 
     // --- Resource Bars ---
     public IReadOnlyList<ResourceBarViewModel> ResourceBars => _resourceBars;
+
+    // --- Vehículo ---
+    public int VehiculoEstado => _state.Vehiculo;
+    public string VehiculoTexto => $"{_state.Vehiculo}/{VehicleService.MaxEstado}";
+    public int ChatarraCount => VehicleService.ChatarraCount(_state.Player);
+    public bool PuedeReparar => _state.Vehiculo < VehicleService.MaxEstado
+        && VehicleService.ChatarraCount(_state.Player) > 0;
+
+    public void RepararVehiculo()
+    {
+        string? texto = VehicleService.Reparar(_state.Player, _state);
+        if (texto != null)
+        {
+            Narrativa = texto;
+            AddNotification(texto, NotificationType.Success);
+            SyncFromState();
+        }
+        else
+        {
+            AddNotification("No tienes chatarra para reparar.", NotificationType.Warning);
+        }
+    }
 
     // --- Inventory Grid (8x8 = 64 slots) ---
     public IReadOnlyList<InventoryItemViewModel> InventoryItems => _inventoryItems;
@@ -287,7 +313,10 @@ public class GameViewModel : INotifyPropertyChanged
     public string Stats => $"FUE {_state.Player.Fuerza}  DES {_state.Player.Destreza}  RES {_state.Player.Resistencia}";
     public string Stats2 => $"INT {_state.Player.Inteligencia}  PER {_state.Player.Percepcion}  CAR {_state.Player.Carisma}";
     public string DiaActual => $"Día {_state.Dia} — {LugarActual.Name}";
-    public Location LugarActual => _lugares.First(l => l.Id == _state.CurrentLocationId);
+    public Location LugarActual
+        => _lugares.FirstOrDefault(l => l.Id == _state.CurrentLocationId)
+            ?? _lugares.FirstOrDefault()
+            ?? throw new InvalidOperationException("No hay lugares cargados.");
     public IReadOnlyList<Location> Lugares => _lugares;
     public IReadOnlyList<Route> Rutas => _rutas;
     public string CurrentId => _state.CurrentLocationId;
@@ -414,21 +443,30 @@ public class GameViewModel : INotifyPropertyChanged
 
     public void RefrescarOpciones()
     {
-        Opciones = new ObservableCollection<string>(Destinos.Select(r =>
+        var lista = new List<string>();
+        foreach (var r in Destinos)
         {
             string otro = TravelService.OtroExtremo(r, _state.CurrentLocationId);
-            var l = _lugares.First(x => x.Id == otro);
+            var l = _lugares.FirstOrDefault(x => x.Id == otro);
+            if (l == null) continue; // Ruta con extremo desconocido: se omite sin tumbar la lista.
             int gas = TravelService.CosteCombustible(r);
 
             if (r.Tipo == TipoViaje.Largo)
-                return $"{l.Name} — autopista {r.DistanceKm} km · -{gas} gas · 1 día · riesgo {r.RiesgoTexto}";
+            {
+                lista.Add($"{l.Name} — autopista {r.DistanceKm} km · -{gas} gas · 1 día · riesgo {r.RiesgoTexto}");
+                continue;
+            }
 
             string extra = string.Empty;
             string? final = CiudadAlFinal(otro, _state.CurrentLocationId);
             if (final != null && final != otro)
-                extra = $" → {_lugares.First(x => x.Id == final).Name}";
-            return $"{l.Name} — secundaria {r.DistanceKm} km{extra} · -{gas} gas · 1 día · riesgo {r.RiesgoTexto}";
-        }));
+            {
+                string? nombreFinal = _lugares.FirstOrDefault(x => x.Id == final)?.Name;
+                if (nombreFinal != null) extra = $" → {nombreFinal}";
+            }
+            lista.Add($"{l.Name} — secundaria {r.DistanceKm} km{extra} · -{gas} gas · 1 día · riesgo {r.RiesgoTexto}");
+        }
+        Opciones = new ObservableCollection<string>(lista);
         OnPropertyChanged(nameof(Opciones));
     }
 
@@ -474,6 +512,11 @@ public class GameViewModel : INotifyPropertyChanged
             AddNotification("Has muerto. Fin del viaje.", NotificationType.Danger);
         }
 
+        if (_state.Vehiculo <= 0)
+            AddNotification("El coche no anda (0/100). Repáralo con chatarra.", NotificationType.Danger);
+        else if (_state.Vehiculo < VehicleService.UmbralAviso)
+            AddNotification($"⚠ El coche está en las últimas ({VehiculoTexto}).", NotificationType.Warning);
+
         IsTraveling = false;
         TravelProgress = 0;
     }
@@ -496,7 +539,7 @@ public class GameViewModel : INotifyPropertyChanged
 
     public void DebugGasolina(int cantidad)
     {
-        _state.Player.Combustible += cantidad;
+        _state.Player.Combustible = Math.Min(ItemsService.MaxCombustible, _state.Player.Combustible + cantidad);
         AddNotification($"[DEBUG] Depósito +{cantidad} gasolina.", NotificationType.Info);
         SyncFromState();
     }
@@ -526,7 +569,8 @@ public class GameViewModel : INotifyPropertyChanged
         string actual = desde;
         for (int i = 0; i < 6; i++)
         {
-            var lug = _lugares.First(x => x.Id == actual);
+            var lug = _lugares.FirstOrDefault(x => x.Id == actual);
+            if (lug == null) return null; // Id desconocido: sin ciudad final.
             if (!lug.EsParada) return actual;
 
             string? sig = _rutas
@@ -552,7 +596,8 @@ public class GameViewModel : INotifyPropertyChanged
         foreach (var r in Destinos)
         {
             string otro = TravelService.OtroExtremo(r, _state.CurrentLocationId);
-            var l = _lugares.First(x => x.Id == otro);
+            var l = _lugares.FirstOrDefault(x => x.Id == otro);
+            if (l == null) continue;
             if (opcion.StartsWith(l.Name)) return r;
         }
         return null;

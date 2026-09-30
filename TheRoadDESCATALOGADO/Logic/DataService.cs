@@ -13,9 +13,8 @@ namespace TheRoad.Logic
 
         public static List<Location> LoadLocations()
         {
-            var json = File.ReadAllText(Path.Combine(DataPath, "locations.json"));
-            var dto = JsonConvert.DeserializeObject<LocationsDto>(json);
-            return dto?.Locations?.Select(l => new Location
+            var dto = LoadDto<LocationsDto>("locations.json");
+            return dto?.Locations?.Where(l => l != null).Select(l => new Location
             {
                 Id = l.Id,
                 Name = l.Name,
@@ -28,22 +27,43 @@ namespace TheRoad.Logic
 
         public static List<Route> LoadRoutes()
         {
-            var json = File.ReadAllText(Path.Combine(DataPath, "routes.json"));
-            var dto = JsonConvert.DeserializeObject<RoutesDto>(json);
-            return dto?.Routes?.Select(r => new Route
+            var dto = LoadDto<RoutesDto>("routes.json");
+            var rutas = dto?.Routes?.Where(r => r != null).ToList() ?? new List<RouteDto>();
+            var resultado = new List<Route>();
+            foreach (var r in rutas)
             {
-                FromId = r.FromId,
-                ToId = r.ToId,
-                DistanceKm = r.DistanceKm,
-                Riesgo = r.Risk,
-                Tipo = Enum.Parse<TipoViaje>(r.Type)
-            }).ToList() ?? new List<Route>();
+                if (!Enum.TryParse<TipoViaje>(r.Type, ignoreCase: true, out var tipo))
+                    throw new InvalidOperationException(
+                        $"routes.json: ruta {r.FromId} → {r.ToId} tiene type \"{r.Type}\" desconocido. Valores válidos: {string.Join(", ", Enum.GetNames<TipoViaje>())}.");
+                resultado.Add(new Route
+                {
+                    FromId = r.FromId,
+                    ToId = r.ToId,
+                    DistanceKm = r.DistanceKm,
+                    Riesgo = r.Risk,
+                    Tipo = tipo
+                });
+            }
+            return resultado;
         }
 
         public static EventsData LoadEvents()
         {
-            var json = File.ReadAllText(Path.Combine(DataPath, "events.json"));
-            return JsonConvert.DeserializeObject<EventsData>(json) ?? new EventsData();
+            return LoadDto<EventsData>("events.json") ?? new EventsData();
+        }
+
+        private static T? LoadDto<T>(string fileName) where T : class
+        {
+            string path = Path.Combine(DataPath, fileName);
+            try
+            {
+                return JsonConvert.DeserializeObject<T>(File.ReadAllText(path));
+            }
+            catch (Exception ex) when (ex is IOException || ex is JsonException)
+            {
+                throw new InvalidOperationException(
+                    $"No se pudo cargar {fileName} desde \"{path}\": {ex.Message}", ex);
+            }
         }
 
         private class LocationsDto { public List<LocationDto> Locations { get; set; } = new(); }

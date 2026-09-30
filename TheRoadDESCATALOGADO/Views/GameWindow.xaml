@@ -36,9 +36,10 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="77*"/>
-            <ColumnDefinition Width="11*"/>
-            <ColumnDefinition Width="1010*"/>
+            <ColumnDefinition Width="*" />
+            <!-- Central -->
+            <ColumnDefinition Width="320" />
+            <!-- Sidebar: Estado personaje -->
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -50,7 +51,7 @@
         <!-- ============================================================
              HEADER HUD - Siempre visible
              ============================================================ -->
-        <Border Grid.Row="0" Style="{StaticResource PanelBorder}" Margin="12,12,12,8" Padding="12,8" Grid.ColumnSpan="3">
+        <Border Grid.Row="0" Style="{StaticResource PanelBorder}" Margin="12,12,12,8" Padding="12,8" Grid.ColumnSpan="2">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -90,30 +91,36 @@
                             <WrapPanel Orientation="Horizontal" HorizontalAlignment="Right" />
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border Width="140" Margin="8,0,0,0" ToolTip="{Binding Name}">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Width="150" Margin="8,0,0,0" ToolTip="{Binding Name}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
 
-                                    <TextBlock Text="{Binding Icon}" FontSize="14" VerticalAlignment="Center" Margin="0,0,6,0" />
-                                    <ProgressBar Grid.Column="1" Value="{Binding Value}" Maximum="{Binding MaxValue}"
-                                                 Height="16" Style="{StaticResource ResourceProgressBar}"
-                                                 Foreground="{Binding Color, Converter={StaticResource StringToBrush}}"
-                                                 VerticalAlignment="Center" />
-                                     <TextBlock Grid.Column="2" Text="{Binding DisplayText}"
-                                                FontFamily="{StaticResource FontMono}" FontSize="11"
-                                                Foreground="{StaticResource BrushTextSecondary}"
-                                                VerticalAlignment="Center" Margin="6,0,0,0"
-                                                MinWidth="52" TextAlignment="Right" />
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
+                                        <StackPanel VerticalAlignment="Center" Margin="0,0,6,0">
+                                            <TextBlock Text="{Binding Icon}" FontFamily="Segoe UI Emoji" FontSize="15"
+                                                       HorizontalAlignment="Center" />
+                                            <TextBlock Text="{Binding Name}" FontSize="8"
+                                                       Foreground="{StaticResource BrushTextMuted}"
+                                                       HorizontalAlignment="Center" />
+                                        </StackPanel>
+                                        <ProgressBar Grid.Column="1" Value="{Binding Value, Mode=OneWay}" Maximum="{Binding MaxValue}"
+                                                     Height="16" Style="{StaticResource ResourceProgressBar}"
+                                                     Foreground="{Binding Color, Converter={StaticResource StringToBrush}}"
+                                                     VerticalAlignment="Center" />
+                                         <TextBlock Grid.Column="2" Text="{Binding DisplayText}"
+                                                    FontFamily="{StaticResource FontMono}" FontSize="11"
+                                                    Foreground="{StaticResource BrushTextSecondary}"
+                                                    VerticalAlignment="Center" Margin="2,0,0,0"
+                                                    MinWidth="52" TextAlignment="Right" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
                 </ItemsControl>
 
                 <!-- Indicador de alerta -->
@@ -174,6 +181,9 @@
                                          Style="{StaticResource TabRadioButton}" Margin="5,0,0,0" />
                             <RadioButton Content="📓 DIARIO" GroupName="ViewTabs"
                                          IsChecked="{Binding Vista, Converter={StaticResource StringToBool}, ConverterParameter=Diario}"
+                                         Style="{StaticResource TabRadioButton}" Margin="5,0,0,0" />
+                            <RadioButton Content="🚗 VEHÍCULO" GroupName="ViewTabs"
+                                         IsChecked="{Binding Vista, Converter={StaticResource StringToBool}, ConverterParameter=Vehiculo}"
                                          Style="{StaticResource TabRadioButton}" Margin="5,0,0,0" />
                         </StackPanel>
                     </Border>
@@ -276,6 +286,74 @@
                                         </DataTemplate>
                                     </ListBox.ItemTemplate>
                                 </ListBox>
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- VEHÍCULO -->
+                        <ScrollViewer x:Name="PanelVehiculo"
+                                      Visibility="{Binding Vista, Converter={StaticResource StringToVis}, ConverterParameter=Vehiculo}"
+                                      VerticalScrollBarVisibility="Auto"
+                                      Style="{StaticResource StyledScrollViewer}"
+                                      Margin="0,8,0,0">
+                            <StackPanel>
+                                <TextBlock Text="VEHÍCULO" Style="{StaticResource HeaderTextBlock}" Margin="0,0,0,8" />
+                                <Separator Style="{StaticResource DecorativeSeparator}" Margin="0,0,0,12" />
+
+                                <Border Style="{StaticResource PanelBorder}" Padding="16" Margin="0,0,0,12"
+                                        HorizontalAlignment="Center">
+                                    <Image Source="pack://application:,,,/Assets/Images/Icons/vehiculo.png"
+                                           Width="160" Height="160" Stretch="Uniform" />
+                                </Border>
+
+                                <Border Style="{StaticResource PanelBorder}" Padding="16">
+                                    <StackPanel>
+                                        <Grid Margin="0,0,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="ESTADO" Style="{StaticResource MonoTextBlock}" FontSize="12" />
+                                            <TextBlock Grid.Column="1" Text="{Binding VehiculoTexto}"
+                                                       Style="{StaticResource MonoTextBlock}" FontSize="12"
+                                                       Foreground="{StaticResource BrushAccentGold}" />
+                                        </Grid>
+                                        <ProgressBar Value="{Binding VehiculoEstado, Mode=OneWay}" Maximum="100" Height="10"
+                                                     Style="{StaticResource ResourceProgressBar}"
+                                                     Foreground="{StaticResource BrushAccentGold}"
+                                                     Margin="0,0,0,12" />
+
+                                        <Grid Margin="0,0,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="COMBUSTIBLE" Style="{StaticResource MonoTextBlock}" FontSize="12" />
+                                            <TextBlock Grid.Column="1" Text="{Binding ResourceBars[3].DisplayText}"
+                                                       Style="{StaticResource MonoTextBlock}" FontSize="12"
+                                                       Foreground="{StaticResource BrushAccentGold}" />
+                                        </Grid>
+                                        <ProgressBar Value="{Binding ResourceBars[3].Value, Mode=OneWay}" Maximum="100" Height="10"
+                                                     Style="{StaticResource ResourceProgressBar}"
+                                                     Foreground="{StaticResource BrushAccentGold}"
+                                                     Margin="0,0,0,12" />
+
+                                        <TextBlock Margin="0,0,0,12"
+                                                   Style="{StaticResource MonoTextBlock}" FontSize="12">
+                                            <Run Text="⚙ Chatarra: " /><Run Text="{Binding ChatarraCount, Mode=OneWay}" Foreground="{StaticResource BrushAccentGold}" />
+                                        </TextBlock>
+
+                                        <Button Content="🔧 REPARAR (+20)"
+                                                Click="BtnReparar_Click"
+                                                IsEnabled="{Binding PuedeReparar}"
+                                                Style="{StaticResource PrimaryButton}"
+                                                Height="40" FontSize="13" />
+
+                                        <TextBlock Text="Cada chatarra repara +20 (máx. 100). A 0 el coche no anda."
+                                                   Style="{StaticResource MonoTextBlock}"
+                                                   FontSize="10" Opacity="0.6" TextWrapping="Wrap"
+                                                   Margin="0,8,0,0" />
+                                    </StackPanel>
+                                </Border>
                             </StackPanel>
                         </ScrollViewer>
                     </Grid>
@@ -434,7 +512,7 @@
                        Panel.ZIndex="1000"
                        HorizontalAlignment="Left"
                        VerticalAlignment="Top"
-                       Margin="20,28,0,0" Grid.Column="2">
+                       Margin="20,28,0,0" Grid.Column="0">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <StackPanel Orientation="Vertical" />
@@ -487,7 +565,7 @@
                 Grid.Row="0" Grid.RowSpan="2"
                 Background="#800D0D0D"
                 Visibility="Collapsed"
-                Panel.ZIndex="500" Grid.ColumnSpan="3">
+                Panel.ZIndex="500" Grid.ColumnSpan="2">
             <Grid>
                 <Border Style="{StaticResource PanelBorder}" Padding="32"
                         HorizontalAlignment="Center" VerticalAlignment="Center"

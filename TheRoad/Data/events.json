@@ -19,6 +19,9 @@
     {
       "text": "Tormenta de ceniza: avanzas a ciegas durante horas (-1 agua, -8 HP).",
       "effects": { "water": -1, "hp": -8 }
+    },
+    {
+      "text": "Ves humo en el bosque desde tu coche"
     }
   ],
   "minorEvents": [
@@ -46,11 +49,11 @@
   "scavengeEvents": [
     {
       "text": "Chapuceas entre veh\u00edculos oxidados y llenas un bid\u00f3n (+1 gasolina en inventario).",
-      "effects": { "inventory": ["Bid\u00f3n de gasolina"] }
+      "effects": { "inventory": [ "Bid\u00f3n de gasolina" ] }
     },
     {
       "text": "Recoges chatarra que luego podr\u00e1s cambiar (+1 chatarra).",
-      "effects": { "inventory": ["Chatarra"] }
+      "effects": { "inventory": [ "Chatarra" ] }
     },
     {
       "text": "Encuentras una conserva intacta en una despensa (+1 comida).",
@@ -59,6 +62,18 @@
     {
       "text": "Nada de valor aqu\u00ed. Solo polvo y silencio.",
       "effects": {}
+    }
+  ],
+
+  "complexEvents": [
+    {
+      "text": "encuentras una caravana averiada. Un hombre se encuentra reparando el motor"
+    },
+    {
+      "text": "ves una ni\u00f1a andando sola por el arcen de la carretera"
+    },
+    {
+      "text": "Una mujer va cargando a un bebe en brazos"
     }
   ]
 }

@@ -31,6 +31,12 @@ public static class Eventos
         s.Player.Medicina = Math.Clamp(s.Player.Medicina + e.Medicine, 0, ItemsService.MaxMedicina);
         s.Dia += e.Days;
 
+        // Los días que salta el evento también cuentan para la hambruna.
+        int danoHambruna = ItemsService.AplicarHambruna(s.Player, e.Days);
+        string extraHambruna = danoHambruna > 0
+            ? $" ({e.Days} día(s) sin comer: -{danoHambruna} HP por hambruna.)"
+            : string.Empty;
+
         bool inventarioLleno = false;
         foreach (var item in e.Inventory ?? [])
         {
@@ -43,7 +49,7 @@ public static class Eventos
         }
 
         return inventarioLleno
-            ? evt.Text + " (El inventario está lleno: algo se ha quedado atrás.)"
-            : evt.Text;
+            ? evt.Text + " (El inventario está lleno: algo se ha quedado atrás.)" + extraHambruna
+            : evt.Text + extraHambruna;
     }
 }

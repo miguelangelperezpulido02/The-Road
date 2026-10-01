@@ -20,9 +20,30 @@ public static class TravelService
             ? Math.Max(2, r.DistanceKm / 25)
             : Math.Max(1, r.DistanceKm / 45);
 
-    public static int DiasQueConsume(Route r) => 1;
+    /// <summary>Horas base de una ruta por distancia (~50 km/h en autopista, ~35 km/h en secundaria). Mínimos 3/2 h.</summary>
+    public static int HorasBase(Route r)
+        => r.Tipo == TipoViaje.Largo
+            ? Math.Max(3, r.DistanceKm / 50)
+            : Math.Max(2, r.DistanceKm / 35);
 
-    private static int ProbabilidadEvento(Route r)
+    /// <summary>Rango estimado de horas de viaje (base + 0-2 h de imprevistos). Para la UI.</summary>
+    public static (int Min, int Max) HorasEstimadas(Route r)
+        => (HorasBase(r), HorasBase(r) + 2);
+
+    public static string TiempoViajeTxt(Route r)
+    {
+        var (min, max) = HorasEstimadas(r);
+        return $"{min}-{max} h";
+    }
+
+    public static string TiempoViajeTxt(List<Route> rutas)
+    {
+        int min = rutas.Sum(HorasBase);
+        return $"{min}-{min + 2 * rutas.Count} h";
+    }
+
+    /// <summary>Probabilidad de evento (%) de una ruta. Única fuente de verdad: la consultan el roll y la UI.</summary>
+    public static int ProbabilidadEvento(Route r)
         => r.Tipo == TipoViaje.Largo ? 35 + 20 * r.Riesgo : 20 + 15 * r.Riesgo;
 
     public static List<Route> CaminoSegmentado(string desde, string hasta, List<Route> todas)
@@ -81,7 +102,12 @@ public static class TravelService
         s.Player.Combustible -= gas;
         s.Player.Comida = Math.Max(0, s.Player.Comida - 1);
         s.Player.Agua = Math.Max(0, s.Player.Agua - 1);
-        s.Dia++;
+
+        // Duracion variable: horas base por distancia + 0-2 h de imprevistos.
+        int horaSalida = s.Hora;
+        int horas = HorasBase(r) + _rnd.Next(0, 3);
+        s.AvanzarHoras(horas);
+        int diasTranscurridos = (horaSalida + horas) / 24;
         s.CurrentLocationId = destinoId;
         s.Visitados.Add(destinoId);
 
@@ -89,25 +115,36 @@ public static class TravelService
         int estadoPrevio = s.Vehiculo;
         s.Vehiculo = Math.Max(0, s.Vehiculo - VehicleService.DesgastePorViaje(r));
         bool averia = VehicleService.HayAveria(estadoPrevio);
+        int probAveria = VehicleService.ProbabilidadAveria(estadoPrevio);
         if (averia)
             s.Vehiculo = Math.Max(0, s.Vehiculo - VehicleService.DanoAveria);
 
         string calzada = esLargo ? "de autopista" : "por carretera secundaria";
-        string texto = $"Día {s.Dia}: {r.DistanceKm} km {calzada} hasta {destino.Name} (-{gas} gasolina, -1 día). Riesgo {r.RiesgoTexto}.\n{destino.Description}";
+        string momento = s.EsDeNoche ? "de noche" : "de día";
+        string texto = $"Día {s.Dia}: {r.DistanceKm} km {calzada} hasta {destino.Name} (-{gas} gasolina, {horas} h: {horaSalida:00}:00-{s.Hora:00}:00, {momento}). Riesgo {r.RiesgoTexto}.\n{destino.Description}";
 
-        if (s.Player.Comida == 0 || s.Player.Agua == 0)
+        if (s.Player.Agua == 0)
         {
             s.Player.HP = Math.Max(0, s.Player.HP - 10);
-            texto += "\nEl hambre y la sed te pasan factura (-10 HP).";
+            texto += "\nLa sed te pasa factura (-10 HP).";
         }
+
+        int danoHambruna = ItemsService.AplicarHambruna(s.Player, diasTranscurridos);
+        if (danoHambruna > 0)
+            texto += $"\nHambre: {diasTranscurridos} día(s) pasado(s) sin comida (-{danoHambruna} HP por hambruna).";
 
         var events = new List<string>();
 
-        if (_rnd.Next(1, 101) <= ProbabilidadEvento(r))
+        // Probabilidad con la que se rueda este viaje (se captura antes del roll).
+        int probEvento = ProbabilidadEvento(r);
+        string? eventoViaje = null;
+
+        if (_rnd.Next(1, 101) <= probEvento)
         {
             string? evt = esLargo ? Eventos.EventoGrande(s) : Eventos.EventoMenor(s);
             if (!string.IsNullOrEmpty(evt))
             {
+                eventoViaje = evt;
                 events.Add(evt);
                 texto += "\n" + evt;
             }
@@ -128,7 +165,7 @@ public static class TravelService
             : string.Empty;
         texto += $"\nVehículo: {s.Vehiculo}/{VehicleService.MaxEstado}.";
 
-        s.Diario.Add($"Día {s.Dia}: llegada a {destino.Name}.");
+        s.Diario.Add($"Día {s.Dia} {s.Hora:00}:00: llegada a {destino.Name}{(s.EsDeNoche ? " (de noche)" : "")}.");
 
         return new TravelResult
         {
@@ -138,7 +175,16 @@ public static class TravelService
             Events = events,
             IsLongRoute = esLargo,
             FuelCost = gas,
-            Route = r
+            Route = r,
+            HuboAveria = averia,
+            ProbAveria = probAveria,
+            EventoTexto = eventoViaje,
+            ProbEvento = probEvento,
+            HorasViaje = horas,
+            HoraSalida = horaSalida,
+            HoraLlegada = s.Hora,
+            DiasTranscurridos = diasTranscurridos,
+            LlegaDeNoche = s.EsDeNoche
         };
     }
 
@@ -151,5 +197,20 @@ public static class TravelService
         public bool IsLongRoute { get; set; }
         public int FuelCost { get; set; }
         public Route Route { get; set; } = null!;
+
+        /// <summary>Hubo avería en este viaje y probabilidad con la que se tiró al salir.</summary>
+        public bool HuboAveria { get; set; }
+        public int ProbAveria { get; set; }
+
+        /// <summary>Texto del evento de viaje aplicado (null si no ocurrió) y probabilidad usada en la tirada.</summary>
+        public string? EventoTexto { get; set; }
+        public int ProbEvento { get; set; }
+
+        /// <summary>Horas reales consumidas en este viaje (base por distancia + imprevisto).</summary>
+        public int HorasViaje { get; set; }
+        public int HoraSalida { get; set; }
+        public int HoraLlegada { get; set; }
+        public int DiasTranscurridos { get; set; }
+        public bool LlegaDeNoche { get; set; }
     }
 }

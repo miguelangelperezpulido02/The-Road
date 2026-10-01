@@ -230,8 +230,11 @@ public class GameViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(Stats2));
         OnPropertyChanged(nameof(VehiculoEstado));
         OnPropertyChanged(nameof(VehiculoTexto));
+        OnPropertyChanged(nameof(ProbabilidadAveria));
+        OnPropertyChanged(nameof(ProbabilidadAveriaTexto));
         OnPropertyChanged(nameof(ChatarraCount));
         OnPropertyChanged(nameof(PuedeReparar));
+        OnPropertyChanged(nameof(PuedeViajar));
     }
 
     // --- Resource Bars ---
@@ -243,6 +246,97 @@ public class GameViewModel : INotifyPropertyChanged
     public int ChatarraCount => VehicleService.ChatarraCount(_state.Player);
     public bool PuedeReparar => _state.Vehiculo < VehicleService.MaxEstado
         && VehicleService.ChatarraCount(_state.Player) > 0;
+
+    // --- Avería: probabilidad visible en % ---
+    public int ProbabilidadAveria => VehicleService.ProbabilidadAveria(_state.Vehiculo);
+    public string ProbabilidadAveriaTexto => $"{ProbabilidadAveria}%";
+
+    // --- Popup DEBUG genérico: un único popup reutilizable para avería/eventos/lo que haga falta ---
+    private bool _popupVisible;
+    public bool PopupVisible
+    {
+        get => _popupVisible;
+        private set { _popupVisible = value; OnPropertyChanged(nameof(PopupVisible)); }
+    }
+
+    private string _popupTitulo = string.Empty;
+    public string PopupTitulo
+    {
+        get => _popupTitulo;
+        private set { _popupTitulo = value; OnPropertyChanged(nameof(PopupTitulo)); }
+    }
+
+    private string _popupTexto = string.Empty;
+    public string PopupTexto
+    {
+        get => _popupTexto;
+        private set { _popupTexto = value; OnPropertyChanged(nameof(PopupTexto)); }
+    }
+
+    public void CerrarPopup() => PopupVisible = false;
+
+    // --- Debug: botones para testear en profundidad (la barra solo es visible en DEBUG) ---
+    public bool EsDebugBuild
+    {
+        get
+        {
+#if DEBUG
+            return true;
+#else
+            return false;
+#endif
+        }
+    }
+
+    /// <summary>Fuerza una avería real: -10 de salud + popup, sin depender del azar.</summary>
+    public void DebugForzarAveria()
+    {
+        _state.Vehiculo = Math.Max(0, _state.Vehiculo - VehicleService.DanoAveria);
+        PopupTitulo = "⚠ AVERÍA (DEBUG)";
+        PopupTexto =
+            $"⚠ Avería forzada (debug): -{VehicleService.DanoAveria} vehículo.\n" +
+            $"Salud: {VehiculoTexto} · Próximo viaje: {ProbabilidadAveria}%";
+        PopupVisible = true;
+        SyncFromState();
+        AddNotification($"[DEBUG] Avería forzada: {VehiculoTexto}.", NotificationType.Warning);
+    }
+
+    /// <summary>Fija la salud del vehículo para probar la curva de probabilidad.</summary>
+    public void DebugSaludVehiculo(int salud)
+    {
+        _state.Vehiculo = Math.Clamp(salud, 0, VehicleService.MaxEstado);
+        SyncFromState();
+        AddNotification($"[DEBUG] Salud vehículo {VehiculoTexto} · próximo viaje {ProbabilidadAveria}%.",
+            NotificationType.Info);
+    }
+
+    /// <summary>Tira la probabilidad actual y enseña el resultado, sin aplicar daño.</summary>
+    public void DebugTiradaAveria()
+    {
+        int prob = ProbabilidadAveria;
+        bool averia = VehicleService.HayAveria(_state.Vehiculo);
+        AddNotification(
+            $"[DEBUG] Tirada avería: prob {prob}% → {(averia ? "AVERÍA (sin daño aplicado)" : "sin avería")}.",
+            averia ? NotificationType.Warning : NotificationType.Info);
+    }
+
+    /// <summary>Fuerza un evento real del pool con la MISMA lógica de aplicación que el juego.
+    /// Pool vacío: no toca el estado y avisa por toast (sin excepción).</summary>
+    public void DebugForzarEvento(bool grande)
+    {
+        string? evt = grande ? Eventos.EventoGrande(_state) : Eventos.EventoMenor(_state);
+        if (evt == null)
+        {
+            AddNotification("[DEBUG] No hay eventos disponibles en el pool.", NotificationType.Warning);
+            return;
+        }
+
+        SyncFromState(); // efectos reales del evento: barras, inventario, día...
+        PopupTitulo = "🎲 EVENTO (DEBUG)";
+        PopupTexto = $"🎲 Evento {(grande ? "grande" : "menor")} forzado (debug):\n{evt}";
+        PopupVisible = true;
+        AddNotification($"[DEBUG] Evento {(grande ? "grande" : "menor")} forzado y aplicado.", NotificationType.Info);
+    }
 
     public void RepararVehiculo()
     {
@@ -322,7 +416,7 @@ public class GameViewModel : INotifyPropertyChanged
     public string? Foto => _state.Player.PhotoPath;
     public string Stats => $"FUE {_state.Player.Fuerza}  DES {_state.Player.Destreza}  RES {_state.Player.Resistencia}";
     public string Stats2 => $"INT {_state.Player.Inteligencia}  PER {_state.Player.Percepcion}  CAR {_state.Player.Carisma}";
-    public string DiaActual => $"Día {_state.Dia} — {LugarActual.Name}";
+    public string DiaActual => $"Día {_state.Dia} · {_state.Hora:00}:00 · {(_state.EsDeNoche ? "NOCHE" : "DÍA")} — {LugarActual.Name}";
     public Location LugarActual
         => _lugares.FirstOrDefault(l => l.Id == _state.CurrentLocationId)
             ?? _lugares.FirstOrDefault()
@@ -426,7 +520,7 @@ public class GameViewModel : INotifyPropertyChanged
 
             var largo = _rutas.FirstOrDefault(x => x.Tipo == TipoViaje.Largo && Conecta(x, _destinoSelId));
             if (largo != null)
-                lineas.Add($"Autopista: {largo.DistanceKm} km, -{TravelService.CosteCombustible(largo)} gasolina, 1 día");
+                lineas.Add($"Autopista: {largo.DistanceKm} km, -{TravelService.CosteCombustible(largo)} gasolina, {TravelService.TiempoViajeTxt(largo)} · eventos {TravelService.ProbabilidadEvento(largo)}%");
 
             var seg = TravelService.CaminoSegmentado(_state.CurrentLocationId, _destinoSelId, _rutas);
             if (seg.Count > 0)
@@ -434,7 +528,12 @@ public class GameViewModel : INotifyPropertyChanged
                 int km = seg.Sum(x => x.DistanceKm);
                 int gas = seg.Sum(TravelService.CosteCombustible);
                 string tramos = seg.Count == 1 ? "1 tramo" : $"{seg.Count} tramos";
-                lineas.Add($"Secundaria: {tramos}, {km} km, -{gas} gasolina, {seg.Count} día(s)");
+                // Cada tramo rueda con su propia probabilidad: rango solo si difieren de verdad.
+                var probs = seg.Select(TravelService.ProbabilidadEvento).ToList();
+                string eventosTxt = probs.Count == 1 || probs.Min() == probs.Max()
+                    ? $"eventos {probs[0]}%"
+                    : $"eventos {probs.Min()}–{probs.Max()}%";
+                lineas.Add($"Secundaria: {tramos}, {km} km, -{gas} gasolina, {TravelService.TiempoViajeTxt(seg)} · {eventosTxt}");
             }
 
             lineas.Add(l.Description);
@@ -464,7 +563,7 @@ public class GameViewModel : INotifyPropertyChanged
 
             if (r.Tipo == TipoViaje.Largo)
             {
-                lista.Add($"{l.Name} — autopista {r.DistanceKm} km · -{gas} gas · 1 día · riesgo {r.RiesgoTexto}");
+                lista.Add($"{l.Name} — autopista {r.DistanceKm} km · -{gas} gas · {TravelService.TiempoViajeTxt(r)} · riesgo {r.RiesgoTexto} · eventos {TravelService.ProbabilidadEvento(r)}%");
                 continue;
             }
 
@@ -475,7 +574,7 @@ public class GameViewModel : INotifyPropertyChanged
                 string? nombreFinal = _lugares.FirstOrDefault(x => x.Id == final)?.Name;
                 if (nombreFinal != null) extra = $" → {nombreFinal}";
             }
-            lista.Add($"{l.Name} — secundaria {r.DistanceKm} km{extra} · -{gas} gas · 1 día · riesgo {r.RiesgoTexto}");
+            lista.Add($"{l.Name} — secundaria {r.DistanceKm} km{extra} · -{gas} gas · {TravelService.TiempoViajeTxt(r)} · riesgo {r.RiesgoTexto} · eventos {TravelService.ProbabilidadEvento(r)}%");
         }
         Opciones = new ObservableCollection<string>(lista);
         OnPropertyChanged(nameof(Opciones));
@@ -510,6 +609,30 @@ public class GameViewModel : INotifyPropertyChanged
             _opcionSel = null;
             RefrescarOpciones();
             SyncFromState();
+
+#if DEBUG
+            // Popup DEBUG del viaje (genérico): la avería lo abre siempre; el evento solo
+            // con popupViajeEvento = true (los eventos saltan en el 35-95% de los viajes y
+            // saturaría la pantalla). Activar puntualmente cambiándolo a true; el popup del
+            // evento puede forzarse con los botones de la barra DEBUG sin tocar este flag.
+            bool popupViajeEvento = false;
+            if (result.HuboAveria || (popupViajeEvento && result.EventoTexto != null))
+            {
+                var partes = new List<string>();
+                if (result.HuboAveria)
+                    partes.Add(
+                        $"⚠ Avería en ruta: el motor tose y pierdes piezas por el camino (-{VehicleService.DanoAveria} vehículo).\n" +
+                        $"Salud: {VehiculoTexto} · Prob. al salir: {result.ProbAveria}% · Próximo viaje: {ProbabilidadAveria}%");
+                if (popupViajeEvento && result.EventoTexto != null)
+                    partes.Add($"🎲 {result.EventoTexto}\nProb. eventos: {result.ProbEvento}%");
+
+                PopupTitulo = result.HuboAveria && result.EventoTexto != null ? "⚠🎲 VIAJE (DEBUG)"
+                    : result.HuboAveria ? "⚠ AVERÍA (DEBUG)"
+                    : "🎲 EVENTO (DEBUG)";
+                PopupTexto = string.Join("\n\n", partes);
+                PopupVisible = true;
+            }
+#endif
 
             // Notificaciones por eventos
             foreach (var evt in result.Events)

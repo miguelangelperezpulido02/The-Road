@@ -38,6 +38,7 @@ public static class GameData
             CurrentLocationId = "dc",
             Visitados = ["dc"],
             Dia = 1,
+            Hora = 8,
             Vehiculo = VehicleService.EstadoInicial,
             Diario = [$"Día 1: {jugador.Name} sale de Washington D.C."]
         };

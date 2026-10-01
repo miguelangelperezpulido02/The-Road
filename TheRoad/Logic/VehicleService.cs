@@ -17,14 +17,17 @@ public static class VehicleService
     /// <summary>Daño fijo de una avería en ruta.</summary>
     public const int DanoAveria = 10;
 
+    /// <summary>% máximo de avería con el vehículo al mínimo. A 100 de salud es 0%.</summary>
+    public const int AveriaMax = 30;
+
     private static readonly Random _rnd = new();
 
     /// <summary>Desgaste determinista por viaje: 2 + riesgo (3-5).</summary>
     public static int DesgastePorViaje(Route r) => 2 + r.Riesgo;
 
-    /// <summary>Probabilidad de avería (%) según estado: 5 / 15 / 30.</summary>
+    /// <summary>Probabilidad de avería (%) lineal: 0% a 100 de salud, sube al bajar la salud.</summary>
     public static int ProbabilidadAveria(int estado)
-        => estado >= 70 ? 5 : estado >= 40 ? 15 : 30;
+        => Math.Clamp((MaxEstado - estado) * AveriaMax / MaxEstado, 0, AveriaMax);
 
     public static bool HayAveria(int estadoPrevio)
         => _rnd.Next(1, 101) <= ProbabilidadAveria(estadoPrevio);

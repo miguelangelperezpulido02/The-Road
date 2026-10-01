@@ -15,6 +15,9 @@ public static class ItemsService
     public const int MaxAgua = 20;
     public const int MaxMedicina = 10;
 
+    /// <summary>HP perdidos por cada día pasado sin comida (Comida == 0).</summary>
+    public const int HambrunaPorDia = 5;
+
     /// <summary>Huecos físicos del inventario (8x8).</summary>
     public const int Capacidad = 64;
 
@@ -40,5 +43,15 @@ public static class ItemsService
             default:
                 return null;
         }
+    }
+
+    /// <summary>Aplica el daño por hambruna: HambrunaPorDia HP por cada día pasado sin comida.
+    /// Solo cuenta si Comida == 0. Devuelve el HP perdido (nunca baja de 0).</summary>
+    public static int AplicarHambruna(Player p, int dias)
+    {
+        if (dias <= 0 || p.Comida > 0) return 0;
+        int dano = Math.Min(p.HP, HambrunaPorDia * dias);
+        p.HP -= dano;
+        return dano;
     }
 }

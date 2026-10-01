@@ -10,6 +10,22 @@ public class GameState
     public HashSet<string> Visitados { get; set; } = ["dc"];
     public int Dia { get; set; } = 1;
 
+    // Reloj del dia (0-23). Lo avanza el viaje; cruzar la medianoche suma dias.
+    public int Hora { get; set; } = 8;
+
+    // Calificacion del momento: dia (06:00-19:59) o noche (20:00-05:59).
+    // Base para el futuro sistema de eventos por momento del dia.
+    public const int HoraAmanecer = 6;
+    public const int HoraOcaso = 20;
+    public bool EsDeNoche => Hora >= HoraOcaso || Hora < HoraAmanecer;
+
+    public void AvanzarHoras(int horas)
+    {
+        if (horas <= 0) return;
+        Hora += horas;
+        while (Hora >= 24) { Hora -= 24; Dia++; }
+    }
+
     // Estado del vehículo (0-100). A 0 bloquea los viajes. Lo mueve TravelService.
     public int Vehiculo { get; set; } = VehicleService.EstadoInicial;
 

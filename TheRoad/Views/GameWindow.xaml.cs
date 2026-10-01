@@ -67,6 +67,31 @@ public partial class GameWindow : MetroWindow
         VistaMapa.Refrescar();
     }
 
+    private void BtnCerrarPopup_Click(object sender, RoutedEventArgs e)
+    {
+        _vm.CerrarPopup();
+    }
+
+    // Barra debug: un solo handler, la acción va en Tag (mismo patrón que BtnUsarItem_Click).
+    private void Dbg_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button b || b.Tag is not string tag) return;
+        switch (tag)
+        {
+            case "averia": _vm.DebugForzarAveria(); break;
+            case "s100": _vm.DebugSaludVehiculo(100); break;
+            case "s50": _vm.DebugSaludVehiculo(50); break;
+            case "s1": _vm.DebugSaludVehiculo(1); break;
+            case "s0": _vm.DebugSaludVehiculo(0); break;
+            case "tirada": _vm.DebugTiradaAveria(); break;
+            case "eventoG": _vm.DebugForzarEvento(true); break;
+            case "eventoM": _vm.DebugForzarEvento(false); break;
+            case "gas": _vm.DebugGasolina(20); break;
+            case "bidon": _vm.DebugBidon(); break;
+        }
+        VistaMapa.Refrescar();
+    }
+
     private void BtnOptions_Click(object sender, RoutedEventArgs e)
     {
         var options = new OptionsWindow();

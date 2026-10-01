@@ -161,6 +161,12 @@
                 <ColumnDefinition Width="320" />
                 <!-- Sidebar: Estado personaje -->
             </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <!-- Contenido -->
+                <RowDefinition Height="Auto" />
+                <!-- Barra debug (0 alto en Release) -->
+            </Grid.RowDefinitions>
 
             <!-- CENTRAL PANEL -->
             <Border Grid.Column="0" Style="{StaticResource PanelBorder}" Margin="0,0,8,0">
@@ -216,13 +222,13 @@
                                                      GroupName="TravelMode"
                                                      IsChecked="{Binding EsAutopista}"
                                                      Style="{StaticResource TabRadioButton}"
-                                                     ToolTip="Un solo tramo: más gasolina, 1 día, eventos grandes." />
+                                                     ToolTip="Un solo tramo: más gasolina, viaje sin paradas, eventos grandes." />
                                         <RadioButton Content="🛤 Secundaria (segmentada)"
                                                      GroupName="TravelMode"
                                                      IsChecked="{Binding EsSecundaria}"
                                                      Style="{StaticResource TabRadioButton}"
                                                      Margin="12,0,0,0"
-                                                     ToolTip="Por paradas: poca gasolina por tramo, más días, eventos menores + chapuceo." />
+                                                     ToolTip="Por paradas: poca gasolina por tramo, paras en cada parada, eventos menores + chapuceo." />
                                     </StackPanel>
                                 </StackPanel>
 
@@ -320,7 +326,19 @@
                                         <ProgressBar Value="{Binding VehiculoEstado, Mode=OneWay}" Maximum="100" Height="10"
                                                      Style="{StaticResource ResourceProgressBar}"
                                                      Foreground="{StaticResource BrushAccentGold}"
-                                                     Margin="0,0,0,12" />
+                                                     Margin="0,0,0,4" />
+
+                                        <Grid Margin="0,0,0,12"
+                                              ToolTip="Probabilidad de avería en el próximo viaje según la salud del vehículo.">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="PROB. AVERÍA" Style="{StaticResource MonoTextBlock}" FontSize="12" />
+                                            <TextBlock Grid.Column="1" Text="{Binding ProbabilidadAveriaTexto}"
+                                                       Style="{StaticResource MonoTextBlock}" FontSize="12"
+                                                       Foreground="{StaticResource BrushAccentGold}" />
+                                        </Grid>
 
                                         <Grid Margin="0,0,0,4">
                                             <Grid.ColumnDefinitions>
@@ -502,6 +520,46 @@
                     </StackPanel>
                 </ScrollViewer>
             </Border>
+
+            <!-- BARRA DEBUG: solo visible en builds DEBUG (EsDebugBuild) -->
+            <Border Grid.Row="1" Grid.ColumnSpan="2"
+                    Visibility="{Binding EsDebugBuild, Converter={StaticResource BoolToVis}}"
+                    Style="{StaticResource PanelBorder}"
+                    Padding="8,6" Margin="0,8,0,0">
+                <WrapPanel Orientation="Horizontal">
+                    <TextBlock Text="[DEBUG]" Style="{StaticResource MonoTextBlock}" FontSize="11"
+                               Foreground="{StaticResource BrushAccentRust}"
+                               VerticalAlignment="Center" Margin="0,0,10,0" />
+                    <Button Content="Forzar avería" Tag="averia" Click="Dbg_Click"
+                            Style="{StaticResource BaseButton}" Height="26" FontSize="11" Padding="10,0" Margin="0,0,6,0"
+                            ToolTip="Aplica -10 de salud y abre el popup de avería" />
+                    <Button Content="Salud 100" Tag="s100" Click="Dbg_Click"
+                            Style="{StaticResource BaseButton}" Height="26" FontSize="11" Padding="10,0" Margin="0,0,6,0"
+                            ToolTip="Vehículo al 100%: probabilidad 0%" />
+                    <Button Content="Salud 50" Tag="s50" Click="Dbg_Click"
+                            Style="{StaticResource BaseButton}" Height="26" FontSize="11" Padding="10,0" Margin="0,0,6,0"
+                            ToolTip="Vehículo al 50%: probabilidad 15%" />
+                    <Button Content="Salud 1" Tag="s1" Click="Dbg_Click"
+                            Style="{StaticResource BaseButton}" Height="26" FontSize="11" Padding="10,0" Margin="0,0,6,0"
+                            ToolTip="Vehículo casi muerto: probabilidad casi máxima" />
+                    <Button Content="Salud 0" Tag="s0" Click="Dbg_Click"
+                            Style="{StaticResource BaseButton}" Height="26" FontSize="11" Padding="10,0" Margin="0,0,6,0"
+                            ToolTip="Vehículo roto: viajar bloqueado, probabilidad 30%" />
+                    <Button Content="Tirada avería" Tag="tirada" Click="Dbg_Click"
+                            Style="{StaticResource BaseButton}" Height="26" FontSize="11" Padding="10,0" Margin="0,0,6,0"
+                            ToolTip="Tira la probabilidad actual y enseña el resultado (sin daño)" />
+                    <Button Content="🎲 Evento grande" Tag="eventoG" Click="Dbg_Click"
+                            Style="{StaticResource BaseButton}" Height="26" FontSize="11" Padding="10,0" Margin="0,0,6,0"
+                            ToolTip="Fuerza un evento grande real del pool (efectos aplicados)" />
+                    <Button Content="🎲 Evento menor" Tag="eventoM" Click="Dbg_Click"
+                            Style="{StaticResource BaseButton}" Height="26" FontSize="11" Padding="10,0" Margin="0,0,6,0"
+                            ToolTip="Fuerza un evento menor real del pool (efectos aplicados)" />
+                    <Button Content="+20 gasolina" Tag="gas" Click="Dbg_Click"
+                            Style="{StaticResource BaseButton}" Height="26" FontSize="11" Padding="10,0" Margin="0,0,6,0" />
+                    <Button Content="+Bidón" Tag="bidon" Click="Dbg_Click"
+                            Style="{StaticResource BaseButton}" Height="26" FontSize="11" Padding="10,0" />
+                </WrapPanel>
+            </Border>
         </Grid>
 
         <!-- ============================================================
@@ -586,6 +644,41 @@
                                    Text="Iniciando viaje..."
                                    TextAlignment="Center"
                                    Margin="0,12,0,0" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- POP UP DEBUG genérico: título/texto enlazados; solo se dispara desde código DEBUG -->
+        <Border x:Name="PopupOverlay"
+                Grid.Row="0" Grid.RowSpan="2"
+                Background="#800D0D0D"
+                Visibility="{Binding PopupVisible, Converter={StaticResource BoolToVis}}"
+                Panel.ZIndex="600" Grid.ColumnSpan="2">
+            <Grid>
+                <Border Style="{StaticResource PanelBorder}" Padding="24"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                        MinWidth="380" MaxWidth="560">
+                    <StackPanel>
+                        <TextBlock Text="{Binding PopupTitulo}"
+                                   Style="{StaticResource TitleTextBlock}"
+                                   TextAlignment="Center"
+                                   FontFamily="{StaticResource FontMono}"
+                                   Foreground="{StaticResource BrushAccentRust}" />
+                        <Separator Style="{StaticResource DecorativeSeparator}" Margin="0,10" />
+                        <TextBlock Text="{Binding PopupTexto}"
+                                   FontSize="13"
+                                   LineHeight="20"
+                                   TextWrapping="Wrap"
+                                   Margin="0,4,0,16" />
+                        <Button Content="ENTENDIDO"
+                                Click="BtnCerrarPopup_Click"
+                                Style="{StaticResource PrimaryButton}"
+                                Height="36"
+                                FontSize="13"
+                                MinWidth="180"
+                                HorizontalAlignment="Center"
+                                Effect="{StaticResource ShadowGlowGold}" />
                     </StackPanel>
                 </Border>
             </Grid>

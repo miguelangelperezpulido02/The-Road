@@ -352,7 +352,7 @@ public partial class MapView : UserControl
         if (largo != null)
         {
             int gas = TravelService.CosteCombustible(largo);
-            routeInfo.Add($"🛣 Autopista: {largo.DistanceKm} km · -{gas} gas · 1 día");
+            routeInfo.Add($"🛣 Autopista: {largo.DistanceKm} km · -{gas} gas · {TravelService.TiempoViajeTxt(largo)}");
         }
 
         var seg = TravelService.CaminoSegmentado(vm.CurrentId, destino, vm.Rutas.ToList());
@@ -361,7 +361,7 @@ public partial class MapView : UserControl
             int km = seg.Sum(x => x.DistanceKm);
             int gas = seg.Sum(TravelService.CosteCombustible);
             string tramos = seg.Count == 1 ? "1 tramo" : $"{seg.Count} tramos";
-            routeInfo.Add($"🛤 Secundaria: {tramos} · {km} km · -{gas} gas · {seg.Count} día(s)");
+            routeInfo.Add($"🛤 Secundaria: {tramos} · {km} km · -{gas} gas · {TravelService.TiempoViajeTxt(seg)}");
         }
 
         InfoRoutes.Text = string.Join("\n", routeInfo);

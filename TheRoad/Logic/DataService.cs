@@ -93,6 +93,7 @@ namespace TheRoad.Logic
             public List<EventDto> BigEvents { get; set; } = new();
             public List<EventDto> MinorEvents { get; set; } = new();
             public List<EventDto> ScavengeEvents { get; set; } = new();
+            public List<DecisionDto> DecisionEvents { get; set; } = new();
         }
 
         public class EventDto
@@ -108,7 +109,24 @@ namespace TheRoad.Logic
             public int Water { get; set; }
             public int Medicine { get; set; }
             public int Days { get; set; }
+            public int Fuel { get; set; }
+            public int Vehicle { get; set; }
             public List<string> Inventory { get; set; } = new();
+        }
+
+        public class DecisionDto
+        {
+            public string Id { get; set; } = "";
+            public string Text { get; set; } = "";
+            public List<DecisionOptionDto> Options { get; set; } = new();
+        }
+
+        public class DecisionOptionDto
+        {
+            public string Text { get; set; } = "";
+            public string Hint { get; set; } = "";
+            public string Result { get; set; } = "";
+            public EventEffects Effects { get; set; } = new();
         }
     }
 }

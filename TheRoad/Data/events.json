@@ -65,15 +65,30 @@
     }
   ],
 
-  "complexEvents": [
+  "decisionEvents": [
     {
-      "text": "encuentras una caravana averiada. Un hombre se encuentra reparando el motor"
-    },
-    {
-      "text": "ves una ni\u00f1a andando sola por el arcen de la carretera"
-    },
-    {
-      "text": "Una mujer va cargando a un bebe en brazos"
+      "id": "gasolinera",
+      "text": "Gasolinera abandonada: los surtidores siguen en pie y la tienda tiene la puerta entornada. No se ve a nadie.",
+      "options": [
+        {
+          "text": "Sifonear gasolina de los surtidores",
+          "hint": "+8 gasolina",
+          "effects": { "fuel": 8 },
+          "result": "Llenas dos garrafas del depósito enterrado (+8 gasolina). Tardas un par de horas, pero nadie aparece."
+        },
+        {
+          "text": "Registrar la tienda",
+          "hint": "+2 comida, -6 HP",
+          "effects": { "food": 2, "hp": -6 },
+          "result": "Encuentras conservas tras el mostrador (+2 comida), pero una estantería podrida te cae encima (-6 HP)."
+        },
+        {
+          "text": "Marcharse sin parar",
+          "hint": "Sin cambios",
+          "effects": {},
+          "result": "No merece el riesgo. Pisas a fondo y la dejas atrás en el retrovisor."
+        }
+      ]
     }
   ]
 }

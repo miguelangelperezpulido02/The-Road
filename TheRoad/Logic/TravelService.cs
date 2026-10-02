@@ -138,16 +138,32 @@ public static class TravelService
         // Probabilidad con la que se rueda este viaje (se captura antes del roll).
         int probEvento = ProbabilidadEvento(r);
         string? eventoViaje = null;
+        DataService.DecisionDto? decisionPendiente = null;
 
         if (_rnd.Next(1, 101) <= probEvento)
         {
-            string? evt = esLargo ? Eventos.EventoGrande(s) : Eventos.EventoMenor(s);
-            if (!string.IsNullOrEmpty(evt))
+            // Dentro del mismo roll: 30% evento con decisión (queda pendiente), 70% clásico.
+            var decisiones = GameData.Events.DecisionEvents
+                .Where(d => d != null && !string.IsNullOrEmpty(d.Text) && d.Options.Count > 0)
+                .ToList();
+            if (decisiones.Count > 0 && _rnd.Next(100) < 30)
             {
-                eventoViaje = evt;
-                events.Add(evt);
-                s.Diario.Add($"Día {s.Dia} {s.Hora:00}:00: 🎲 {evt}");
-                texto += "\n" + evt;
+                var dec = decisiones[_rnd.Next(decisiones.Count)];
+                decisionPendiente = dec;
+                events.Add(dec.Text);
+                s.Diario.Add($"Día {s.Dia} {s.Hora:00}:00: 🎲 {dec.Text}");
+                texto += "\n🎲 " + dec.Text + "\n[Elige una opción.]";
+            }
+            else
+            {
+                string? evt = esLargo ? Eventos.EventoGrande(s) : Eventos.EventoMenor(s);
+                if (!string.IsNullOrEmpty(evt))
+                {
+                    eventoViaje = evt;
+                    events.Add(evt);
+                    s.Diario.Add($"Día {s.Dia} {s.Hora:00}:00: 🎲 {evt}");
+                    texto += "\n" + evt;
+                }
             }
         }
 
@@ -182,6 +198,7 @@ public static class TravelService
             ProbAveria = probAveria,
             EventoTexto = eventoViaje,
             ProbEvento = probEvento,
+            DecisionPendiente = decisionPendiente,
             HorasViaje = horas,
             HoraSalida = horaSalida,
             HoraLlegada = s.Hora,
@@ -207,6 +224,9 @@ public static class TravelService
         /// <summary>Texto del evento de viaje aplicado (null si no ocurrió) y probabilidad usada en la tirada.</summary>
         public string? EventoTexto { get; set; }
         public int ProbEvento { get; set; }
+
+        /// <summary>Evento con decisión pendiente de elegir (null si no tocó). Efectos aún sin aplicar.</summary>
+        public DataService.DecisionDto? DecisionPendiente { get; set; }
 
         /// <summary>Horas reales consumidas en este viaje (base por distancia + imprevisto).</summary>
         public int HorasViaje { get; set; }

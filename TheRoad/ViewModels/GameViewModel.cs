@@ -273,7 +273,86 @@ public class GameViewModel : INotifyPropertyChanged
         private set { _popupTexto = value; OnPropertyChanged(nameof(PopupTexto)); }
     }
 
-    public void CerrarPopup() => PopupVisible = false;
+    public void CerrarPopup()
+    {
+        if (HayDecision) return; // Con decisión pendiente hay que elegir: no se cierra.
+        PopupVisible = false;
+    }
+
+    // --- Eventos con decisión: el viaje deja la situación pendiente y el jugador elige ---
+    public class OpcionDecisionItem
+    {
+        public int Indice { get; set; }
+        public string Titulo { get; set; } = "";
+    }
+
+    private DataService.DecisionDto? _decisionPendiente;
+    public DataService.DecisionDto? DecisionPendiente
+    {
+        get => _decisionPendiente;
+        private set
+        {
+            _decisionPendiente = value;
+            OnPropertyChanged(nameof(DecisionPendiente));
+            OnPropertyChanged(nameof(HayDecision));
+            OnPropertyChanged(nameof(SinDecision));
+        }
+    }
+
+    public bool HayDecision => DecisionPendiente != null;
+    public bool SinDecision => !HayDecision;
+
+    public ObservableCollection<OpcionDecisionItem> OpcionesDecision { get; } = new();
+    private bool _decisionDebug;
+
+    private void MostrarDecision(DataService.DecisionDto dec, bool esDebug = false)
+    {
+        DecisionPendiente = dec;
+        _decisionDebug = esDebug;
+        OpcionesDecision.Clear();
+        for (int i = 0; i < dec.Options.Count; i++)
+        {
+            var op = dec.Options[i];
+            OpcionesDecision.Add(new OpcionDecisionItem
+            {
+                Indice = i,
+                Titulo = string.IsNullOrEmpty(op.Hint) ? op.Text : $"{op.Text}\n({op.Hint})"
+            });
+        }
+        PopupTitulo = "🎲 DECISIÓN";
+        PopupTexto = dec.Text;
+        PopupVisible = true;
+    }
+
+    public void ElegirOpcion(int indice)
+    {
+        var dec = DecisionPendiente;
+        if (dec == null) return;
+        string? txt = Eventos.ResolverDecision(_state, dec, indice);
+        if (txt == null) return;
+        Narrativa += "\n" + txt;
+        if (!_decisionDebug)
+            _state.Diario.Add($"Día {_state.Dia} {_state.Hora:00}:00: 🎲 {txt}");
+        AddNotification(txt, NotificationType.Info);
+        DecisionPendiente = null;
+        OpcionesDecision.Clear();
+        SyncFromState();
+        CerrarPopup();
+    }
+
+    /// <summary>Fuerza la primera decisión disponible (sin diario, como el resto de DEBUG).</summary>
+    public void DebugForzarDecision()
+    {
+        var dec = GameData.Events.DecisionEvents
+            .FirstOrDefault(d => d != null && !string.IsNullOrEmpty(d.Text) && d.Options.Count > 0);
+        if (dec == null)
+        {
+            AddNotification("[DEBUG] No hay eventos con decisión disponibles.", NotificationType.Warning);
+            return;
+        }
+        MostrarDecision(dec, esDebug: true);
+        AddNotification("[DEBUG] Decisión forzada y pendiente de elegir.", NotificationType.Info);
+    }
 
     // --- Debug: botones para testear en profundidad (la barra solo es visible en DEBUG) ---
     public bool EsDebugBuild
@@ -546,6 +625,7 @@ public class GameViewModel : INotifyPropertyChanged
         get
         {
             if (IsTraveling) return false;
+            if (HayDecision) return false; // Hay que elegir opción antes de seguir viajando.
             var r = RutaAlDestino();
             return r != null && TravelService.PuedeViajar(_state, r) == null;
         }
@@ -633,6 +713,10 @@ public class GameViewModel : INotifyPropertyChanged
                 PopupVisible = true;
             }
 #endif
+
+            // Decisión pendiente de gameplay: popup con opciones (siempre, no solo DEBUG).
+            if (result.DecisionPendiente != null)
+                MostrarDecision(result.DecisionPendiente);
 
             // Notificaciones por eventos
             foreach (var evt in result.Events)

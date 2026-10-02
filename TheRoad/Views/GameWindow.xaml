@@ -554,6 +554,9 @@
                     <Button Content="🎲 Evento menor" Tag="eventoM" Click="Dbg_Click"
                             Style="{StaticResource BaseButton}" Height="26" FontSize="11" Padding="10,0" Margin="0,0,6,0"
                             ToolTip="Fuerza un evento menor real del pool (efectos aplicados)" />
+                    <Button Content="🎲 Decisión" Tag="decisionD" Click="Dbg_Click"
+                            Style="{StaticResource BaseButton}" Height="26" FontSize="11" Padding="10,0" Margin="0,0,6,0"
+                            ToolTip="Fuerza la gasolinera (elige opción; sin diario)" />
                     <Button Content="+20 gasolina" Tag="gas" Click="Dbg_Click"
                             Style="{StaticResource BaseButton}" Height="26" FontSize="11" Padding="10,0" Margin="0,0,6,0" />
                     <Button Content="+Bidón" Tag="bidon" Click="Dbg_Click"
@@ -671,7 +674,19 @@
                                    LineHeight="20"
                                    TextWrapping="Wrap"
                                    Margin="0,4,0,16" />
+                        <ItemsControl ItemsSource="{Binding OpcionesDecision}"
+                                      Visibility="{Binding HayDecision, Converter={StaticResource BoolToVis}}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Content="{Binding Titulo}"
+                                            Tag="{Binding Indice}"
+                                            Click="BtnOpcionDecision_Click"
+                                            Margin="0,4" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                         <Button Content="ENTENDIDO"
+                                Visibility="{Binding SinDecision, Converter={StaticResource BoolToVis}}"
                                 Click="BtnCerrarPopup_Click"
                                 Style="{StaticResource PrimaryButton}"
                                 Height="36"

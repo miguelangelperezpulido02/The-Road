@@ -72,6 +72,12 @@ public partial class GameWindow : MetroWindow
         _vm.CerrarPopup();
     }
 
+    private void BtnOpcionDecision_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button b && b.Tag is int indice)
+            _vm.ElegirOpcion(indice);
+    }
+
     // Barra debug: un solo handler, la acción va en Tag (mismo patrón que BtnUsarItem_Click).
     private void Dbg_Click(object sender, RoutedEventArgs e)
     {
@@ -86,6 +92,7 @@ public partial class GameWindow : MetroWindow
             case "tirada": _vm.DebugTiradaAveria(); break;
             case "eventoG": _vm.DebugForzarEvento(true); break;
             case "eventoM": _vm.DebugForzarEvento(false); break;
+            case "decisionD": _vm.DebugForzarDecision(); break;
             case "gas": _vm.DebugGasolina(20); break;
             case "bidon": _vm.DebugBidon(); break;
         }

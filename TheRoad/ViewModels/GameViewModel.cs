@@ -285,6 +285,7 @@ public class GameViewModel : INotifyPropertyChanged
     {
         public int Indice { get; set; }
         public string Titulo { get; set; } = "";
+        public bool Habilitada { get; set; } = true;
     }
 
     private readonly Queue<(DataService.DecisionDto Dec, bool EsDebug)> _colaDecisiones = new();
@@ -327,11 +328,12 @@ public class GameViewModel : INotifyPropertyChanged
         for (int i = 0; i < dec.Options.Count; i++)
         {
             var op = dec.Options[i];
-            OpcionesDecision.Add(new OpcionDecisionItem
-            {
-                Indice = i,
-                Titulo = string.IsNullOrEmpty(op.Hint) ? op.Text : $"{op.Text}\n({op.Hint})"
-            });
+            if (!Eventos.CumpleMarcas(_state, op)) continue; // Marcas: se oculta, no se deshabilita.
+            bool okRecurso = Eventos.CumpleRecurso(_state, op);
+            string titulo = string.IsNullOrEmpty(op.Hint) ? op.Text : $"{op.Text}\n({op.Hint})";
+            if (!okRecurso && op.Requiere != null)
+                titulo += $" (requiere {op.Requiere.Min} {Eventos.NombreRecurso(op.Requiere.Recurso)})";
+            OpcionesDecision.Add(new OpcionDecisionItem { Indice = i, Titulo = titulo, Habilitada = okRecurso });
         }
         PopupTitulo = "🎲 DECISIÓN";
         PopupTexto = dec.Text;
@@ -342,11 +344,17 @@ public class GameViewModel : INotifyPropertyChanged
     {
         if (_colaDecisiones.Count == 0) return;
         var (dec, esDebug) = _colaDecisiones.Peek();
+        if (indice < 0 || indice >= dec.Options.Count) return;
+        if (!Eventos.OpcionDisponible(_state, dec.Options[indice]))
+        {
+            AddNotification("No cumples los requisitos de esa opción.", NotificationType.Warning);
+            return;
+        }
         string? txt = Eventos.ResolverDecision(_state, dec, indice);
         if (txt == null) return;
         Narrativa += "\n" + txt;
         if (!esDebug)
-            _state.Diario.Add($"Día {_state.Dia} {_state.Hora:00}:00: 🎲 {txt}");
+            _state.AnadirDiario($"🎲 {txt}");
         AddNotification(txt, NotificationType.Info);
         _colaDecisiones.Dequeue();
         if (_colaDecisiones.Count > 0)
@@ -376,6 +384,28 @@ public class GameViewModel : INotifyPropertyChanged
     }
 
     // --- Debug: botones para testear en profundidad (la barra solo es visible en DEBUG) ---
+    public class DebugAccion
+    {
+        public string Etiqueta { get; set; } = "";
+        public string Tag { get; set; } = "";
+        public string? Tooltip { get; set; }
+    }
+
+    /// <summary>Botones de la barra DEBUG (data-driven: añadir uno no toca el XAML).</summary>
+    public ObservableCollection<DebugAccion> AccionesDebug { get; } = new()
+    {
+        new() { Etiqueta = "Forzar avería", Tag = "averia", Tooltip = "Aplica -10 de salud y abre el popup de avería" },
+        new() { Etiqueta = "Salud 100", Tag = "s100", Tooltip = "Vehículo al 100%: probabilidad 0%" },
+        new() { Etiqueta = "Salud 50", Tag = "s50", Tooltip = "Vehículo al 50%: probabilidad 15%" },
+        new() { Etiqueta = "Salud 1", Tag = "s1", Tooltip = "Vehículo casi muerto: probabilidad casi máxima" },
+        new() { Etiqueta = "Salud 0", Tag = "s0", Tooltip = "Vehículo roto: viajar bloqueado, probabilidad 30%" },
+        new() { Etiqueta = "Tirada avería", Tag = "tirada", Tooltip = "Tira la probabilidad actual y enseña el resultado (sin daño)" },
+        new() { Etiqueta = "🎲 Evento grande", Tag = "eventoG", Tooltip = "Fuerza una decisión grande (elige opción; sin diario)" },
+        new() { Etiqueta = "🎲 Evento menor", Tag = "eventoM", Tooltip = "Fuerza una decisión (elige opción; sin diario)" },
+        new() { Etiqueta = "🎲 Decisión", Tag = "decisionD", Tooltip = "Fuerza la gasolinera (elige opción; sin diario)" },
+        new() { Etiqueta = "+20 gasolina", Tag = "gas" },
+        new() { Etiqueta = "+Bidón", Tag = "bidon" },
+    };
     public bool EsDebugBuild
     {
         get
@@ -602,7 +632,7 @@ public class GameViewModel : INotifyPropertyChanged
 
             var largo = _rutas.FirstOrDefault(x => x.Tipo == TipoViaje.Largo && Conecta(x, _destinoSelId));
             if (largo != null)
-                lineas.Add($"Autopista: {largo.DistanceKm} km, -{TravelService.CosteCombustible(largo)} gasolina, {TravelService.TiempoViajeTxt(largo)} · eventos {TravelService.ProbabilidadEvento(largo)}%");
+                lineas.Add($"Autopista: {largo.DistanceKm} km, -{TravelService.CosteCombustible(largo)} gasolina, {TravelService.TiempoViajeTxt(largo)} · eventos {TravelService.ProbabilidadEvento(largo)}% · rápida y peligrosa");
 
             var seg = TravelService.CaminoSegmentado(_state.CurrentLocationId, _destinoSelId, _rutas);
             if (seg.Count > 0)
@@ -615,7 +645,7 @@ public class GameViewModel : INotifyPropertyChanged
                 string eventosTxt = probs.Count == 1 || probs.Min() == probs.Max()
                     ? $"eventos {probs[0]}%"
                     : $"eventos {probs.Min()}–{probs.Max()}%";
-                lineas.Add($"Secundaria: {tramos}, {km} km, -{gas} gasolina, {TravelService.TiempoViajeTxt(seg)} · {eventosTxt}");
+                lineas.Add($"Secundaria: {tramos}, {km} km, -{gas} gasolina, {TravelService.TiempoViajeTxt(seg)} · {eventosTxt} · lenta con oportunidades");
             }
 
             lineas.Add(l.Description);
@@ -646,7 +676,7 @@ public class GameViewModel : INotifyPropertyChanged
 
             if (r.Tipo == TipoViaje.Largo)
             {
-                lista.Add($"{l.Name} — autopista {r.DistanceKm} km · -{gas} gas · {TravelService.TiempoViajeTxt(r)} · riesgo {r.RiesgoTexto} · eventos {TravelService.ProbabilidadEvento(r)}%");
+                lista.Add($"{l.Name} — autopista {r.DistanceKm} km · -{gas} gas · {TravelService.TiempoViajeTxt(r)} · riesgo {r.RiesgoTexto} · eventos {TravelService.ProbabilidadEvento(r)}% · rápida y peligrosa");
                 continue;
             }
 
@@ -657,7 +687,7 @@ public class GameViewModel : INotifyPropertyChanged
                 string? nombreFinal = _lugares.FirstOrDefault(x => x.Id == final)?.Name;
                 if (nombreFinal != null) extra = $" → {nombreFinal}";
             }
-            lista.Add($"{l.Name} — secundaria {r.DistanceKm} km{extra} · -{gas} gas · {TravelService.TiempoViajeTxt(r)} · riesgo {r.RiesgoTexto} · eventos {TravelService.ProbabilidadEvento(r)}%");
+            lista.Add($"{l.Name} — secundaria {r.DistanceKm} km{extra} · -{gas} gas · {TravelService.TiempoViajeTxt(r)} · riesgo {r.RiesgoTexto} · eventos {TravelService.ProbabilidadEvento(r)}% · lenta con oportunidades");
         }
         Opciones = new ObservableCollection<string>(lista);
         OnPropertyChanged(nameof(Opciones));

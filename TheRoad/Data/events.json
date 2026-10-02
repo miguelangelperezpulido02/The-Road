@@ -1,4 +1,5 @@
 {
+  "_nota-autoria": "REGLA A/B/C: toda decision trae A-riesgosa (pierdes X, ganas Y grande), B-segura (efecto original o pequeno) y C-evitar (nada o coste menor). En amenazas puras: riesgo mayor / riesgo menor / evitar. Cada opcion lleva hint corto y result con numeros exactos. CONDICIONES: 'requiere' (recurso+min, deshabilita), 'requiereMarca'/'sinMarca' (oculta opcion o filtra evento). Toda decision conserva >=1 opcion incondicional.",
   "decisionScavenge": [
     {
       "id": "rebusca-bidon",
@@ -130,8 +131,8 @@
         {
           "text": "Pagar y encajar la paliza",
           "hint": "-1 comida, -12 HP",
-          "effects": { "food": -1, "hp": -12 },
-          "result": "Pagas con latas y un golpe de culata (-1 comida, -12 HP). Te dejan pasar."
+          "effects": { "food": -1, "hp": -12, "marca": "marcado-peaje" },
+          "result": "Pagas con latas y un golpe de culata (-1 comida, -12 HP). Te marcan la cara para recordarte."
         },
         {
           "text": "Embestir la barricada",
@@ -191,6 +192,7 @@
           "text": "Forzar el motor con los faros",
           "hint": "-5 gasolina, -3 HP",
           "effects": { "fuel": -5, "hp": -3 },
+          "requiere": { "recurso": "fuel", "min": 5 },
           "result": "Tiras de faros largos y motor alto (-5 gasolina). La tos te deja tocado (-3 HP)."
         }
       ]
@@ -272,6 +274,12 @@
           "hint": "-2 HP",
           "effects": { "hp": -2 },
           "result": "Lo ahuyentas a pedradas, pero te muerde al retroceder (-2 HP)."
+        },
+        {
+          "text": "Adoptarlo y compartir tu lata",
+          "hint": "-1 comida, te sigue",
+          "effects": { "food": -1, "marca": "perro" },
+          "result": "Lo adoptas y compartes tu lata (-1 comida). El perro te sigue a todas partes."
         }
       ]
     },
@@ -289,6 +297,7 @@
           "text": "Sellar la grieta con vendas",
           "hint": "-1 medicina",
           "effects": { "medicine": -1 },
+          "requiere": { "recurso": "medicine", "min": 1 },
           "result": "Gastas vendas en sellar la grieta (-1 medicina). El bidón aguanta."
         }
       ]
@@ -299,15 +308,91 @@
       "options": [
         {
           "text": "Rebuscar dosis",
-          "hint": "+1 medicina",
-          "effects": { "medicine": 1 },
-          "result": "Encuentras una dosis intacta (+1 medicina)."
+          "hint": "+1 medicina, botiquín",
+          "effects": { "medicine": 1, "marca": "botiquin" },
+          "result": "Encuentras una dosis intacta (+1 medicina) y te quedas el botiquín entero."
         },
         {
           "text": "Registrar el almacén",
           "hint": "+1 comida, -3 HP",
           "effects": { "food": 1, "hp": -3 },
           "result": "Hallan una conserva (+1 comida), pero te cortas con cristales (-3 HP)."
+        }
+      ]
+    },
+    {
+      "id": "deposito-reserva",
+      "text": "El indicador parpadea: vas en reserva y la próxima gasolinera queda lejos.",
+      "soloSi": { "recurso": "fuel", "max": 10 },
+      "options": [
+        {
+          "text": "Apretar el ritmo y rezar",
+          "hint": "Sin cambios",
+          "effects": {},
+          "result": "Aprietas el ritmo sin gastar de más. Llegas por los pelos."
+        },
+        {
+          "text": "Racionar y avanzar despacio",
+          "hint": "+1 día, -1 comida",
+          "effects": { "days": 1, "food": -1 },
+          "result": "Avanzas al ralentí para ahorrar (+1 día). El estómago protesta (-1 comida)."
+        }
+      ]
+    },
+    {
+      "id": "reencuentro",
+      "text": "¡El perro te ha seguido hasta aquí! Menea la cola junto al coche.",
+      "requiereMarca": "perro",
+      "options": [
+        {
+          "text": "Repartir tu lata con él",
+          "hint": "-1 comida",
+          "effects": { "food": -1 },
+          "result": "Come de tu mano (-1 comida). Definitivamente es tu perro."
+        },
+        {
+          "text": "Espantarlo de una vez",
+          "hint": "Sin cambios",
+          "effects": {},
+          "result": "Lo espantas con pena. Quizá vuelva. Quizá no."
+        }
+      ]
+    },
+    {
+      "id": "caravana-medica",
+      "text": "Una caravana de médicos reconoce tu botiquín y te ofrece ayuda.",
+      "requiereMarca": "botiquin",
+      "options": [
+        {
+          "text": "Dejarte curar",
+          "hint": "+10 HP",
+          "effects": { "hp": 10 },
+          "result": "Te curan con calma (+10 HP). El botiquín te abrió puertas."
+        },
+        {
+          "text": "Agradecer y seguir",
+          "hint": "Sin cambios",
+          "effects": {},
+          "result": "Agradeces y sigues tu camino. Buena gente, malos tiempos."
+        }
+      ]
+    },
+    {
+      "id": "extranos",
+      "text": "Unos viajeros acampados te miran con desconfianza.",
+      "options": [
+        {
+          "text": "Pedir provisiones",
+          "hint": "+2 comida",
+          "effects": { "food": 2 },
+          "sinMarca": "marcado-peaje",
+          "result": "No ven marcas en tu cara y comparten (+2 comida). Suerte la tuya."
+        },
+        {
+          "text": "Seguir tu camino",
+          "hint": "Sin cambios",
+          "effects": {},
+          "result": "Los saludas de lejos y sigues. Mejor no tentar."
         }
       ]
     }

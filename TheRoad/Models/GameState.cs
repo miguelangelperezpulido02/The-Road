@@ -31,4 +31,10 @@ public class GameState
 
     // Diario: historial simple para la vista Diario.
     public List<string> Diario { get; set; } = [];
+
+    // Huellas: marcas que dejan algunas decisiones y condicionan otras (Fase B).
+    public HashSet<string> Marcas { get; set; } = [];
+
+    /// <summary>Añade una línea al diario con el prefijo de día/hora actual.</summary>
+    public void AnadirDiario(string texto) => Diario.Add($"Día {Dia} {Hora:00}:00: {texto}");
 }

@@ -142,25 +142,38 @@ public static class TravelService
         if (_rnd.Next(1, 101) <= probEvento)
         {
             // Oleada 2: todo acierto es decisión (Largo: pool grande; Segmentado: pool menor).
-            var dec = esLargo ? Eventos.DecisionGrande() : Eventos.DecisionMenor();
+            var dec = esLargo ? Eventos.DecisionGrande(s) : Eventos.DecisionMenor(s);
             if (dec != null)
             {
                 decisionesPendientes.Add(dec);
                 events.Add(dec.Text);
-                s.Diario.Add($"Día {s.Dia} {s.Hora:00}:00: 🎲 {dec.Text}");
+                s.AnadirDiario($"🎲 {dec.Text}");
                 texto += "\n🎲 " + dec.Text + "\n[Elige una opción.]";
+            }
+        }
+
+        // Fase C: parada espontánea solo en secundaria (20%, máx 1/viaje, sobre la marcha).
+        if (!esLargo && _rnd.Next(100) < 20)
+        {
+            var esp = Eventos.DecisionRebusca(s);
+            if (esp != null)
+            {
+                decisionesPendientes.Add(esp);
+                events.Add(esp.Text);
+                s.AnadirDiario($"🎲 Sobre la marcha: {esp.Text}");
+                texto += "\nSobre la marcha: paras un momento a mirar.\n🎲 " + esp.Text + "\n[Elige una opción.]";
             }
         }
 
         if (destino.EsParada)
         {
             // Oleada 3: la rebusca también es decisión (puede sumarse a la del viaje).
-            var reb = Eventos.DecisionRebusca();
+            var reb = Eventos.DecisionRebusca(s);
             if (reb != null)
             {
                 decisionesPendientes.Add(reb);
                 events.Add(reb.Text);
-                s.Diario.Add($"Día {s.Dia} {s.Hora:00}:00: 🎲 Parada en {destino.Name}: {reb.Text}");
+                s.AnadirDiario($"🎲 Parada en {destino.Name}: {reb.Text}");
                 texto += $"\nParada en {destino.Name}: descansas y miras a ver qué se puede aprovechar.\n🎲 {reb.Text}\n[Elige una opción.]";
             }
         }
@@ -170,7 +183,7 @@ public static class TravelService
             : string.Empty;
         texto += $"\nVehículo: {s.Vehiculo}/{VehicleService.MaxEstado}.";
 
-        s.Diario.Add($"Día {s.Dia} {s.Hora:00}:00: llegada a {destino.Name}{(s.EsDeNoche ? " (de noche)" : "")}.");
+        s.AnadirDiario($"llegada a {destino.Name}{(s.EsDeNoche ? " (de noche)" : "")}.");
 
         return new TravelResult
         {

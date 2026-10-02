@@ -199,7 +199,7 @@
                         <!-- VISTA -->
                         <ScrollViewer x:Name="PanelVista"
                                       Visibility="{Binding Vista, Converter={StaticResource StringToVis}, ConverterParameter=Vista}"
-                                      VerticalScrollBarVisibility="Auto"
+                                      VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                                       Style="{StaticResource StyledScrollViewer}"
                                       Margin="0,8,0,0">
                             <StackPanel>
@@ -270,7 +270,7 @@
                         <!-- DIARIO -->
                         <ScrollViewer x:Name="PanelDiario"
                                       Visibility="{Binding Vista, Converter={StaticResource StringToVis}, ConverterParameter=Diario}"
-                                      VerticalScrollBarVisibility="Auto"
+                                      VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                                       Style="{StaticResource StyledScrollViewer}"
                                       Margin="0,8,0,0">
                             <StackPanel>
@@ -298,7 +298,7 @@
                         <!-- VEHÍCULO -->
                         <ScrollViewer x:Name="PanelVehiculo"
                                       Visibility="{Binding Vista, Converter={StaticResource StringToVis}, ConverterParameter=Vehiculo}"
-                                      VerticalScrollBarVisibility="Auto"
+                                      VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                                       Style="{StaticResource StyledScrollViewer}"
                                       Margin="0,8,0,0">
                             <StackPanel>
@@ -380,7 +380,7 @@
 
             <!-- SIDEBAR: ESTADO PERSONAJE -->
             <Border Grid.Column="1" Style="{StaticResource PanelBorder}">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource StyledScrollViewer}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Style="{StaticResource StyledScrollViewer}">
                     <StackPanel>
                         <!-- Foto y Nombre -->
                         <Border Width="112" Height="112"
@@ -530,37 +530,21 @@
                     <TextBlock Text="[DEBUG]" Style="{StaticResource MonoTextBlock}" FontSize="11"
                                Foreground="{StaticResource BrushAccentRust}"
                                VerticalAlignment="Center" Margin="0,0,10,0" />
-                    <Button Content="Forzar avería" Tag="averia" Click="Dbg_Click"
-                            Style="{StaticResource BaseButton}" Height="26" FontSize="11" Padding="10,0" Margin="0,0,6,0"
-                            ToolTip="Aplica -10 de salud y abre el popup de avería" />
-                    <Button Content="Salud 100" Tag="s100" Click="Dbg_Click"
-                            Style="{StaticResource BaseButton}" Height="26" FontSize="11" Padding="10,0" Margin="0,0,6,0"
-                            ToolTip="Vehículo al 100%: probabilidad 0%" />
-                    <Button Content="Salud 50" Tag="s50" Click="Dbg_Click"
-                            Style="{StaticResource BaseButton}" Height="26" FontSize="11" Padding="10,0" Margin="0,0,6,0"
-                            ToolTip="Vehículo al 50%: probabilidad 15%" />
-                    <Button Content="Salud 1" Tag="s1" Click="Dbg_Click"
-                            Style="{StaticResource BaseButton}" Height="26" FontSize="11" Padding="10,0" Margin="0,0,6,0"
-                            ToolTip="Vehículo casi muerto: probabilidad casi máxima" />
-                    <Button Content="Salud 0" Tag="s0" Click="Dbg_Click"
-                            Style="{StaticResource BaseButton}" Height="26" FontSize="11" Padding="10,0" Margin="0,0,6,0"
-                            ToolTip="Vehículo roto: viajar bloqueado, probabilidad 30%" />
-                    <Button Content="Tirada avería" Tag="tirada" Click="Dbg_Click"
-                            Style="{StaticResource BaseButton}" Height="26" FontSize="11" Padding="10,0" Margin="0,0,6,0"
-                            ToolTip="Tira la probabilidad actual y enseña el resultado (sin daño)" />
-                    <Button Content="🎲 Evento grande" Tag="eventoG" Click="Dbg_Click"
-                            Style="{StaticResource BaseButton}" Height="26" FontSize="11" Padding="10,0" Margin="0,0,6,0"
-                            ToolTip="Fuerza una decisión grande (elige opción; sin diario)" />
-                    <Button Content="🎲 Evento menor" Tag="eventoM" Click="Dbg_Click"
-                            Style="{StaticResource BaseButton}" Height="26" FontSize="11" Padding="10,0" Margin="0,0,6,0"
-                            ToolTip="Fuerza una decisión (elige opción; sin diario)" />
-                    <Button Content="🎲 Decisión" Tag="decisionD" Click="Dbg_Click"
-                            Style="{StaticResource BaseButton}" Height="26" FontSize="11" Padding="10,0" Margin="0,0,6,0"
-                            ToolTip="Fuerza la gasolinera (elige opción; sin diario)" />
-                    <Button Content="+20 gasolina" Tag="gas" Click="Dbg_Click"
-                            Style="{StaticResource BaseButton}" Height="26" FontSize="11" Padding="10,0" Margin="0,0,6,0" />
-                    <Button Content="+Bidón" Tag="bidon" Click="Dbg_Click"
-                            Style="{StaticResource BaseButton}" Height="26" FontSize="11" Padding="10,0" />
+                    <ItemsControl ItemsSource="{Binding AccionesDebug}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Content="{Binding Etiqueta}" Tag="{Binding Tag}"
+                                        ToolTip="{Binding Tooltip}" Click="Dbg_Click"
+                                        Style="{StaticResource BaseButton}" Height="26" FontSize="11"
+                                        Padding="10,0" Margin="0,0,6,0" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                 </WrapPanel>
             </Border>
         </Grid>
@@ -680,6 +664,7 @@
                                 <DataTemplate>
                                     <Button Content="{Binding Titulo}"
                                             Tag="{Binding Indice}"
+                                            IsEnabled="{Binding Habilitada}"
                                             Click="BtnOpcionDecision_Click"
                                             Margin="0,4" />
                                 </DataTemplate>

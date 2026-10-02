@@ -104,6 +104,7 @@ namespace TheRoad.Logic
             public int Days { get; set; }
             public int Fuel { get; set; }
             public int Vehicle { get; set; }
+            public string? Marca { get; set; }
             public List<string> Inventory { get; set; } = new();
         }
 
@@ -112,6 +113,16 @@ namespace TheRoad.Logic
             public string Id { get; set; } = "";
             public string Text { get; set; } = "";
             public List<DecisionOptionDto> Options { get; set; } = new();
+            public SoloSiDto? SoloSi { get; set; }
+            public string? RequiereMarca { get; set; }
+            public string? SinMarca { get; set; }
+        }
+
+        /// <summary>Condición de aparición del evento: solo sale si recurso <= max.</summary>
+        public class SoloSiDto
+        {
+            public string Recurso { get; set; } = "";
+            public int Max { get; set; }
         }
 
         public class DecisionOptionDto
@@ -120,6 +131,16 @@ namespace TheRoad.Logic
             public string Hint { get; set; } = "";
             public string Result { get; set; } = "";
             public EventEffects Effects { get; set; } = new();
+            public RequisitoDto? Requiere { get; set; }
+            public string? RequiereMarca { get; set; }
+            public string? SinMarca { get; set; }
+        }
+
+        /// <summary>Requisito de recurso para elegir la opción (recurso >= min).</summary>
+        public class RequisitoDto
+        {
+            public string Recurso { get; set; } = "";
+            public int Min { get; set; }
         }
     }
 }

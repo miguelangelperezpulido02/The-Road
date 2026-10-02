@@ -7,15 +7,34 @@ public static class Eventos
     private static readonly DataService.EventsData _events = GameData.Events;
     private static readonly Random _rnd = new();
 
-    public static string? EventoGrande(GameState s) => AplicarEvento(s, _events.BigEvents);
-
-    public static string? EventoMenor(GameState s) => AplicarEvento(s, _events.MinorEvents);
-
-    public static string? Chapuceo(GameState s)
+    /// <summary>Sortea una decisión de Segmentado (pool Oleada 2). Null si está vacío.</summary>
+    public static DataService.DecisionDto? DecisionMenor()
     {
-        if (_events.ScavengeEvents.Count == 0) return null;
-        var evt = _events.ScavengeEvents[_rnd.Next(_events.ScavengeEvents.Count)];
-        return AplicarEvento(s, [evt]);
+        var lista = _events.DecisionEvents
+            .Where(d => d != null && !string.IsNullOrEmpty(d.Text) && d.Options.Count > 0)
+            .ToList();
+        if (lista.Count == 0) return null;
+        return lista[_rnd.Next(lista.Count)];
+    }
+
+    /// <summary>Sortea una decisión de rebusca en parada (pool Oleada 3). Null si está vacío.</summary>
+    public static DataService.DecisionDto? DecisionRebusca()
+    {
+        var lista = _events.DecisionScavenge
+            .Where(d => d != null && !string.IsNullOrEmpty(d.Text) && d.Options.Count > 0)
+            .ToList();
+        if (lista.Count == 0) return null;
+        return lista[_rnd.Next(lista.Count)];
+    }
+
+    /// <summary>Sortea un evento grande con decisión (pool Oleada 1). Null si el pool está vacío.</summary>
+    public static DataService.DecisionDto? DecisionGrande()
+    {
+        var lista = _events.DecisionBig
+            .Where(d => d != null && !string.IsNullOrEmpty(d.Text) && d.Options.Count > 0)
+            .ToList();
+        if (lista.Count == 0) return null;
+        return lista[_rnd.Next(lista.Count)];
     }
 
     /// <summary>Resuelve la opción elegida de un evento con decisión: aplica sus efectos y
@@ -61,15 +80,5 @@ public static class Eventos
         return inventarioLleno
             ? " (El inventario está lleno: algo se ha quedado atrás.)" + extraHambruna
             : extraHambruna;
-    }
-
-    private static string? AplicarEvento(GameState s, List<DataService.EventDto> eventos)
-    {
-        if (eventos.Count == 0) return null;
-        var evt = eventos[_rnd.Next(eventos.Count)];
-        var e = evt?.Effects;
-        if (e == null) return null; // Evento malformado en JSON: se omite sin tumbar el viaje.
-
-        return evt.Text + AplicarEfectos(s, e);
     }
 }

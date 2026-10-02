@@ -90,8 +90,8 @@ public partial class GameWindow : MetroWindow
             case "s1": _vm.DebugSaludVehiculo(1); break;
             case "s0": _vm.DebugSaludVehiculo(0); break;
             case "tirada": _vm.DebugTiradaAveria(); break;
-            case "eventoG": _vm.DebugForzarEvento(true); break;
-            case "eventoM": _vm.DebugForzarEvento(false); break;
+            case "eventoG": _vm.DebugForzarDecision(true); break;
+            case "eventoM": _vm.DebugForzarDecision(false); break;
             case "decisionD": _vm.DebugForzarDecision(); break;
             case "gas": _vm.DebugGasolina(20); break;
             case "bidon": _vm.DebugBidon(); break;

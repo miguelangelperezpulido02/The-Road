@@ -90,16 +90,9 @@ namespace TheRoad.Logic
 
         public class EventsData
         {
-            public List<EventDto> BigEvents { get; set; } = new();
-            public List<EventDto> MinorEvents { get; set; } = new();
-            public List<EventDto> ScavengeEvents { get; set; } = new();
             public List<DecisionDto> DecisionEvents { get; set; } = new();
-        }
-
-        public class EventDto
-        {
-            public string Text { get; set; } = "";
-            public EventEffects Effects { get; set; } = new();
+            public List<DecisionDto> DecisionBig { get; set; } = new();
+            public List<DecisionDto> DecisionScavenge { get; set; } = new();
         }
 
         public class EventEffects

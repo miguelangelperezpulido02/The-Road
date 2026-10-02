@@ -137,44 +137,31 @@ public static class TravelService
 
         // Probabilidad con la que se rueda este viaje (se captura antes del roll).
         int probEvento = ProbabilidadEvento(r);
-        string? eventoViaje = null;
-        DataService.DecisionDto? decisionPendiente = null;
+        var decisionesPendientes = new List<DataService.DecisionDto>();
 
         if (_rnd.Next(1, 101) <= probEvento)
         {
-            // Dentro del mismo roll: 30% evento con decisión (queda pendiente), 70% clásico.
-            var decisiones = GameData.Events.DecisionEvents
-                .Where(d => d != null && !string.IsNullOrEmpty(d.Text) && d.Options.Count > 0)
-                .ToList();
-            if (decisiones.Count > 0 && _rnd.Next(100) < 30)
+            // Oleada 2: todo acierto es decisión (Largo: pool grande; Segmentado: pool menor).
+            var dec = esLargo ? Eventos.DecisionGrande() : Eventos.DecisionMenor();
+            if (dec != null)
             {
-                var dec = decisiones[_rnd.Next(decisiones.Count)];
-                decisionPendiente = dec;
+                decisionesPendientes.Add(dec);
                 events.Add(dec.Text);
                 s.Diario.Add($"Día {s.Dia} {s.Hora:00}:00: 🎲 {dec.Text}");
                 texto += "\n🎲 " + dec.Text + "\n[Elige una opción.]";
-            }
-            else
-            {
-                string? evt = esLargo ? Eventos.EventoGrande(s) : Eventos.EventoMenor(s);
-                if (!string.IsNullOrEmpty(evt))
-                {
-                    eventoViaje = evt;
-                    events.Add(evt);
-                    s.Diario.Add($"Día {s.Dia} {s.Hora:00}:00: 🎲 {evt}");
-                    texto += "\n" + evt;
-                }
             }
         }
 
         if (destino.EsParada)
         {
-            string? chapuceo = Eventos.Chapuceo(s);
-            if (chapuceo != null)
+            // Oleada 3: la rebusca también es decisión (puede sumarse a la del viaje).
+            var reb = Eventos.DecisionRebusca();
+            if (reb != null)
             {
-                events.Add(chapuceo);
-                s.Diario.Add($"Día {s.Dia} {s.Hora:00}:00: 🎲 Parada en {destino.Name}: {chapuceo}");
-                texto += $"\nParada en {destino.Name}: descansas y miras a ver qué se puede aprovechar.\n{chapuceo}";
+                decisionesPendientes.Add(reb);
+                events.Add(reb.Text);
+                s.Diario.Add($"Día {s.Dia} {s.Hora:00}:00: 🎲 Parada en {destino.Name}: {reb.Text}");
+                texto += $"\nParada en {destino.Name}: descansas y miras a ver qué se puede aprovechar.\n🎲 {reb.Text}\n[Elige una opción.]";
             }
         }
 
@@ -196,9 +183,8 @@ public static class TravelService
             Route = r,
             HuboAveria = averia,
             ProbAveria = probAveria,
-            EventoTexto = eventoViaje,
             ProbEvento = probEvento,
-            DecisionPendiente = decisionPendiente,
+            DecisionesPendientes = decisionesPendientes,
             HorasViaje = horas,
             HoraSalida = horaSalida,
             HoraLlegada = s.Hora,
@@ -221,12 +207,11 @@ public static class TravelService
         public bool HuboAveria { get; set; }
         public int ProbAveria { get; set; }
 
-        /// <summary>Texto del evento de viaje aplicado (null si no ocurrió) y probabilidad usada en la tirada.</summary>
-        public string? EventoTexto { get; set; }
+        /// <summary>Probabilidad usada en la tirada de evento de este viaje.</summary>
         public int ProbEvento { get; set; }
 
-        /// <summary>Evento con decisión pendiente de elegir (null si no tocó). Efectos aún sin aplicar.</summary>
-        public DataService.DecisionDto? DecisionPendiente { get; set; }
+        /// <summary>Decisiones pendientes de elegir, en orden (viaje y luego parada). Efectos sin aplicar.</summary>
+        public List<DataService.DecisionDto> DecisionesPendientes { get; set; } = new();
 
         /// <summary>Horas reales consumidas en este viaje (base por distancia + imprevisto).</summary>
         public int HorasViaje { get; set; }

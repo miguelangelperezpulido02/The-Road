@@ -1,70 +1,201 @@
 {
-  "bigEvents": [
+  "decisionScavenge": [
     {
-      "text": "Emboscada en la autopista: te tirotean desde un viaducto y escapas arrastr\u00e1ndote (-20 HP).",
-      "effects": { "hp": -20 }
+      "id": "rebusca-bidon",
+      "text": "Vehículos oxidados junto a la parada: alguno aún tiene gasolina.",
+      "options": [
+        {
+          "text": "Llenar un bidón",
+          "hint": "+Bidón",
+          "effects": { "inventory": ["Bidón de gasolina"] },
+          "result": "Llenas un bidón (+1 bidón de gasolina). Pesa una tonelada."
+        },
+        {
+          "text": "Dejarlo y descansar",
+          "hint": "+4 HP",
+          "effects": { "hp": 4 },
+          "result": "Descansas a la sombra de un camión (+4 HP). El bidón puede esperar."
+        }
+      ]
     },
     {
-      "text": "Convoy militar abandonado. Entre los veh\u00edculos hallas chatarra y un bid\u00f3n de gasolina (+2 objetos).",
-      "effects": { "inventory": ["Chatarra", "Bid\u00f3n de gasolina"] }
+      "id": "rebusca-chatarra",
+      "text": "Montones de chatarra alrededor de la parada.",
+      "options": [
+        {
+          "text": "Recoger chatarra",
+          "hint": "+Chatarra",
+          "effects": { "inventory": ["Chatarra"] },
+          "result": "Recoges chatarra que luego podrás cambiar (+1 chatarra)."
+        },
+        {
+          "text": "Buscar piezas finas para el coche",
+          "hint": "+5 vehículo",
+          "effects": { "vehicle": 5 },
+          "result": "Encuentras piezas que le sientan bien al coche (+5 vehículo)."
+        }
+      ]
     },
     {
-      "text": "Un puesto de bandidos te cobra peaje. Pagas con latas y un golpe de culata (-1 comida, -12 HP).",
-      "effects": { "food": -1, "hp": -12 }
+      "id": "rebusca-conserva",
+      "text": "Una despensa intacta tras la parada.",
+      "options": [
+        {
+          "text": "Registrar la despensa",
+          "hint": "+1 comida",
+          "effects": { "food": 1 },
+          "result": "Encuentras una conserva intacta (+1 comida)."
+        },
+        {
+          "text": "Comer allí mismo",
+          "hint": "+3 HP",
+          "effects": { "hp": 3 },
+          "result": "Te sientas y comes con calma (+3 HP). Nadie te molesta."
+        }
+      ]
     },
     {
-      "text": "La autopista est\u00e1 cortada por un derrumbe. Das un rodeo de un d\u00eda entero (+1 d\u00eda, -1 comida, -1 agua).",
-      "effects": { "days": 1, "food": -1, "water": -1 }
-    },
-    {
-      "text": "Tormenta de ceniza: avanzas a ciegas durante horas (-1 agua, -8 HP).",
-      "effects": { "water": -1, "hp": -8 }
-    },
-    {
-      "text": "Ves humo en el bosque desde tu coche"
-    }
-  ],
-  "minorEvents": [
-    {
-      "text": "Algo se mueve entre los \u00e1rboles. Corres y te raspas (-4 HP).",
-      "effects": { "hp": -4 }
-    },
-    {
-      "text": "Encuentras chatarra \u00fatil en el arc\u00e9n.",
-      "effects": { "inventory": ["Chatarra"] }
-    },
-    {
-      "text": "Un perro flaco te roba una lata de la mochila (-1 comida).",
-      "effects": { "food": -1 }
-    },
-    {
-      "text": "El bid\u00f3n se queda sin agua durante la marcha (-1 agua).",
-      "effects": { "water": -1 }
-    },
-    {
-      "text": "Retrocesos de una farmacia: encuentras una dosis de medicina (+1 medicina).",
-      "effects": { "medicine": 1 }
-    }
-  ],
-  "scavengeEvents": [
-    {
-      "text": "Chapuceas entre veh\u00edculos oxidados y llenas un bid\u00f3n (+1 gasolina en inventario).",
-      "effects": { "inventory": [ "Bid\u00f3n de gasolina" ] }
-    },
-    {
-      "text": "Recoges chatarra que luego podr\u00e1s cambiar (+1 chatarra).",
-      "effects": { "inventory": [ "Chatarra" ] }
-    },
-    {
-      "text": "Encuentras una conserva intacta en una despensa (+1 comida).",
-      "effects": { "food": 1 }
-    },
-    {
-      "text": "Nada de valor aqu\u00ed. Solo polvo y silencio.",
-      "effects": {}
+      "id": "rebusca-nada",
+      "text": "Solo polvo y silencio en esta parada.",
+      "options": [
+        {
+          "text": "Remover el polvo",
+          "hint": "Sin cambios",
+          "effects": {},
+          "result": "Nada de valor aquí. Solo polvo y silencio."
+        },
+        {
+          "text": "Marcar el lugar y seguir",
+          "hint": "Sin cambios",
+          "effects": {},
+          "result": "Marcas el lugar en el mapa por si vuelves. Sigues tu camino."
+        }
+      ]
     }
   ],
 
+  "decisionBig": [
+    {
+      "id": "emboscada",
+      "text": "Emboscada en la autopista: disparos desde un viaducto barren la calzada.",
+      "options": [
+        {
+          "text": "Acelerar y huir entre el fuego",
+          "hint": "-20 HP",
+          "effects": { "hp": -20 },
+          "result": "Cruzas la cortina de balas a fondo (-20 HP). El retrovisor queda colgando."
+        },
+        {
+          "text": "Frenar y cubrirse tras el coche",
+          "hint": "-8 HP, -1 comida",
+          "effects": { "hp": -8, "food": -1 },
+          "result": "Te parapetas hasta que se cansan (-8 HP). Pierdes provisiones en el tiroteo (-1 comida)."
+        },
+        {
+          "text": "Abandonar el coche y huir a pie",
+          "hint": "-5 HP, -10 vehículo",
+          "effects": { "hp": -5, "vehicle": -10 },
+          "result": "Escapas campo a través (-5 HP). A la vuelta el coche tiene varios impactos nuevos (-10 vehículo)."
+        }
+      ]
+    },
+    {
+      "id": "convoy",
+      "text": "Convoy militar abandonado en la cuneta: camiones volcados y cajas a medio abrir.",
+      "options": [
+        {
+          "text": "Saquear con calma",
+          "hint": "+Chatarra, +Bidón",
+          "effects": { "inventory": ["Chatarra", "Bidón de gasolina"] },
+          "result": "Cargas chatarra y un bidón de gasolina (+2 objetos). Nadie los reclama."
+        },
+        {
+          "text": "Forzar el camión cisterna",
+          "hint": "+6 gasolina, -5 vehículo",
+          "effects": { "fuel": 6, "vehicle": -5 },
+          "result": "Trasiegas gasolina al depósito (+6 gasolina), pero golpeas los bajos al maniobrar (-5 vehículo)."
+        },
+        {
+          "text": "Registrar la enfermería",
+          "hint": "+2 medicina, -1 comida",
+          "effects": { "medicine": 2, "food": -1 },
+          "result": "Encuentras vendas y morfina (+2 medicina). Un perro salvaje te roba una lata (-1 comida)."
+        }
+      ]
+    },
+    {
+      "id": "peaje",
+      "text": "Un puesto de bandidos corta la autopista: peaje o sangre.",
+      "options": [
+        {
+          "text": "Pagar y encajar la paliza",
+          "hint": "-1 comida, -12 HP",
+          "effects": { "food": -1, "hp": -12 },
+          "result": "Pagas con latas y un golpe de culata (-1 comida, -12 HP). Te dejan pasar."
+        },
+        {
+          "text": "Embestir la barricada",
+          "hint": "-12 vehículo, -5 HP",
+          "effects": { "vehicle": -12, "hp": -5 },
+          "result": "Arrollas bidones y tablones (-12 vehículo). Un tiro roza el capó y te hiere (-5 HP)."
+        },
+        {
+          "text": "Rodear por el bosque",
+          "hint": "+1 día, -1 comida, -1 agua",
+          "effects": { "days": 1, "food": -1, "water": -1 },
+          "result": "Das un rodeo de un día entero por pistas (+1 día, -1 comida, -1 agua)."
+        }
+      ]
+    },
+    {
+      "id": "derrumbe",
+      "text": "La autopista está cortada por un derrumbe: toneladas de roca sobre el asfalto.",
+      "options": [
+        {
+          "text": "Dar el rodeo de un día",
+          "hint": "+1 día, -1 comida, -1 agua",
+          "effects": { "days": 1, "food": -1, "water": -1 },
+          "result": "Rodeas por la sierra: un día entero (+1 día, -1 comida, -1 agua)."
+        },
+        {
+          "text": "Trepar el derrumbe y remolcar",
+          "hint": "-10 HP, -1 comida",
+          "effects": { "hp": -10, "food": -1 },
+          "result": "Pasas el coche piedra a piedra (-10 HP). El esfuerzo te abre el apetito (-1 comida)."
+        },
+        {
+          "text": "Esperar a que despejen",
+          "hint": "+2 días, -2 comida",
+          "effects": { "days": 2, "food": -2 },
+          "result": "Acampas dos días hasta que una apisonadora abre paso (+2 días, -2 comida)."
+        }
+      ]
+    },
+    {
+      "id": "ceniza",
+      "text": "Tormenta de ceniza: el cielo se apaga y el aire quema.",
+      "options": [
+        {
+          "text": "Avanzar a ciegas",
+          "hint": "-1 agua, -8 HP",
+          "effects": { "water": -1, "hp": -8 },
+          "result": "Avanzas a ciegas durante horas (-1 agua, -8 HP). La ceniza se mete hasta en los dientes."
+        },
+        {
+          "text": "Detenerse y esperar",
+          "hint": "+1 día, -1 comida",
+          "effects": { "days": 1, "food": -1 },
+          "result": "Te detienes con un trapo en la cara (+1 día). Comes en silencio (-1 comida)."
+        },
+        {
+          "text": "Forzar el motor con los faros",
+          "hint": "-5 gasolina, -3 HP",
+          "effects": { "fuel": -5, "hp": -3 },
+          "result": "Tiras de faros largos y motor alto (-5 gasolina). La tos te deja tocado (-3 HP)."
+        }
+      ]
+    }
+  ],
   "decisionEvents": [
     {
       "id": "gasolinera",
@@ -87,6 +218,96 @@
           "hint": "Sin cambios",
           "effects": {},
           "result": "No merece el riesgo. Pisas a fondo y la dejas atrás en el retrovisor."
+        }
+      ]
+    },
+    {
+      "id": "arboles",
+      "text": "Algo se mueve entre los árboles al borde de la secundaria.",
+      "options": [
+        {
+          "text": "Correr entre la maleza",
+          "hint": "-4 HP",
+          "effects": { "hp": -4 },
+          "result": "Corres y te raspas con las zarzas (-4 HP). Lo que fuera ya no está."
+        },
+        {
+          "text": "Rastrear al animal",
+          "hint": "+1 comida, -2 HP",
+          "effects": { "food": 1, "hp": -2 },
+          "result": "Cazas lo que sea que era (+1 comida). Te llevas un zarpazo (-2 HP)."
+        }
+      ]
+    },
+    {
+      "id": "arcen",
+      "text": "Chatarra útil brilla en el arcén.",
+      "options": [
+        {
+          "text": "Cargarla tal cual",
+          "hint": "+Chatarra",
+          "effects": { "inventory": ["Chatarra"] },
+          "result": "Cargas la chatarra (+1 chatarra). Pesa, pero servirá."
+        },
+        {
+          "text": "Dejarla y seguir",
+          "hint": "Sin cambios",
+          "effects": {},
+          "result": "No merece parar el coche. Sigues tu camino."
+        }
+      ]
+    },
+    {
+      "id": "perro",
+      "text": "Un perro flaco ronda tu mochila con ojos hambrientos.",
+      "options": [
+        {
+          "text": "Dejarle una lata y espantarlo",
+          "hint": "-1 comida",
+          "effects": { "food": -1 },
+          "result": "Le dejas una lata y lo espantas (-1 comida). Te mira sin rencor."
+        },
+        {
+          "text": "Ahuyentarlo a pedradas",
+          "hint": "-2 HP",
+          "effects": { "hp": -2 },
+          "result": "Lo ahuyentas a pedradas, pero te muerde al retroceder (-2 HP)."
+        }
+      ]
+    },
+    {
+      "id": "bidon",
+      "text": "El bidón pierde agua con los baches de la secundaria.",
+      "options": [
+        {
+          "text": "Apretar el tapón y seguir",
+          "hint": "-1 agua",
+          "effects": { "water": -1 },
+          "result": "Aprietas el tapón, pero ya se ha perdido parte (-1 agua)."
+        },
+        {
+          "text": "Sellar la grieta con vendas",
+          "hint": "-1 medicina",
+          "effects": { "medicine": -1 },
+          "result": "Gastas vendas en sellar la grieta (-1 medicina). El bidón aguanta."
+        }
+      ]
+    },
+    {
+      "id": "farmacia",
+      "text": "Los restos de una farmacia asoman entre dos casas quemadas.",
+      "options": [
+        {
+          "text": "Rebuscar dosis",
+          "hint": "+1 medicina",
+          "effects": { "medicine": 1 },
+          "result": "Encuentras una dosis intacta (+1 medicina)."
+        },
+        {
+          "text": "Registrar el almacén",
+          "hint": "+1 comida, -3 HP",
+          "effects": { "food": 1, "hp": -3 },
+          "result": "Hallan una conserva (+1 comida), pero te cortas con cristales (-3 HP)."
         }
       ]
     }

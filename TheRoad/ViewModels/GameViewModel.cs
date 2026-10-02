@@ -279,36 +279,50 @@ public class GameViewModel : INotifyPropertyChanged
         PopupVisible = false;
     }
 
-    // --- Eventos con decisión: el viaje deja la situación pendiente y el jugador elige ---
+    // --- Eventos con decisión: el viaje deja situaciones pendientes y el jugador elige ---
+    // Un viaje puede traer dos (ruta + parada): se resuelven en orden con una cola.
     public class OpcionDecisionItem
     {
         public int Indice { get; set; }
         public string Titulo { get; set; } = "";
     }
 
-    private DataService.DecisionDto? _decisionPendiente;
-    public DataService.DecisionDto? DecisionPendiente
-    {
-        get => _decisionPendiente;
-        private set
-        {
-            _decisionPendiente = value;
-            OnPropertyChanged(nameof(DecisionPendiente));
-            OnPropertyChanged(nameof(HayDecision));
-            OnPropertyChanged(nameof(SinDecision));
-        }
-    }
+    private readonly Queue<(DataService.DecisionDto Dec, bool EsDebug)> _colaDecisiones = new();
 
-    public bool HayDecision => DecisionPendiente != null;
+    public DataService.DecisionDto? DecisionPendiente =>
+        _colaDecisiones.Count > 0 ? _colaDecisiones.Peek().Dec : null;
+
+    public bool HayDecision => _colaDecisiones.Count > 0;
     public bool SinDecision => !HayDecision;
 
     public ObservableCollection<OpcionDecisionItem> OpcionesDecision { get; } = new();
-    private bool _decisionDebug;
+
+    private void NotificarCola()
+    {
+        OnPropertyChanged(nameof(DecisionPendiente));
+        OnPropertyChanged(nameof(HayDecision));
+        OnPropertyChanged(nameof(SinDecision));
+    }
+
+    /// <summary>Recibe las decisiones pendientes de un viaje (gameplay, en orden).</summary>
+    public void RecibirDecisiones(IEnumerable<DataService.DecisionDto> decisiones)
+    {
+        foreach (var dec in decisiones)
+            MostrarDecision(dec);
+    }
 
     private void MostrarDecision(DataService.DecisionDto dec, bool esDebug = false)
     {
-        DecisionPendiente = dec;
-        _decisionDebug = esDebug;
+        _colaDecisiones.Enqueue((dec, esDebug));
+        if (_colaDecisiones.Count == 1)
+            PresentarActual();
+        NotificarCola();
+    }
+
+    private void PresentarActual()
+    {
+        var dec = DecisionPendiente;
+        if (dec == null) return;
         OpcionesDecision.Clear();
         for (int i = 0; i < dec.Options.Count; i++)
         {
@@ -326,25 +340,32 @@ public class GameViewModel : INotifyPropertyChanged
 
     public void ElegirOpcion(int indice)
     {
-        var dec = DecisionPendiente;
-        if (dec == null) return;
+        if (_colaDecisiones.Count == 0) return;
+        var (dec, esDebug) = _colaDecisiones.Peek();
         string? txt = Eventos.ResolverDecision(_state, dec, indice);
         if (txt == null) return;
         Narrativa += "\n" + txt;
-        if (!_decisionDebug)
+        if (!esDebug)
             _state.Diario.Add($"Día {_state.Dia} {_state.Hora:00}:00: 🎲 {txt}");
         AddNotification(txt, NotificationType.Info);
-        DecisionPendiente = null;
-        OpcionesDecision.Clear();
+        _colaDecisiones.Dequeue();
+        if (_colaDecisiones.Count > 0)
+            PresentarActual();
+        else
+            OpcionesDecision.Clear();
+        NotificarCola();
         SyncFromState();
         CerrarPopup();
     }
 
-    /// <summary>Fuerza la primera decisión disponible (sin diario, como el resto de DEBUG).</summary>
-    public void DebugForzarDecision()
+    /// <summary>Fuerza una decisión disponible (sin diario, como el resto de DEBUG).
+    /// grande=true: del pool grande (botón eventoG); false: del pool de Segmentado.</summary>
+    public void DebugForzarDecision(bool grande = false)
     {
-        var dec = GameData.Events.DecisionEvents
-            .FirstOrDefault(d => d != null && !string.IsNullOrEmpty(d.Text) && d.Options.Count > 0);
+        DataService.DecisionDto? dec = grande
+            ? Eventos.DecisionGrande()
+            : GameData.Events.DecisionEvents
+                .FirstOrDefault(d => d != null && !string.IsNullOrEmpty(d.Text) && d.Options.Count > 0);
         if (dec == null)
         {
             AddNotification("[DEBUG] No hay eventos con decisión disponibles.", NotificationType.Warning);
@@ -397,24 +418,6 @@ public class GameViewModel : INotifyPropertyChanged
         AddNotification(
             $"[DEBUG] Tirada avería: prob {prob}% → {(averia ? "AVERÍA (sin daño aplicado)" : "sin avería")}.",
             averia ? NotificationType.Warning : NotificationType.Info);
-    }
-
-    /// <summary>Fuerza un evento real del pool con la MISMA lógica de aplicación que el juego.
-    /// Pool vacío: no toca el estado y avisa por toast (sin excepción).</summary>
-    public void DebugForzarEvento(bool grande)
-    {
-        string? evt = grande ? Eventos.EventoGrande(_state) : Eventos.EventoMenor(_state);
-        if (evt == null)
-        {
-            AddNotification("[DEBUG] No hay eventos disponibles en el pool.", NotificationType.Warning);
-            return;
-        }
-
-        SyncFromState(); // efectos reales del evento: barras, inventario, día...
-        PopupTitulo = "🎲 EVENTO (DEBUG)";
-        PopupTexto = $"🎲 Evento {(grande ? "grande" : "menor")} forzado (debug):\n{evt}";
-        PopupVisible = true;
-        AddNotification($"[DEBUG] Evento {(grande ? "grande" : "menor")} forzado y aplicado.", NotificationType.Info);
     }
 
     public void RepararVehiculo()
@@ -691,32 +694,20 @@ public class GameViewModel : INotifyPropertyChanged
             SyncFromState();
 
 #if DEBUG
-            // Popup DEBUG del viaje (genérico): la avería lo abre siempre; el evento solo
-            // con popupViajeEvento = true (los eventos saltan en el 35-95% de los viajes y
-            // saturaría la pantalla). Activar puntualmente cambiándolo a true; el popup del
-            // evento puede forzarse con los botones de la barra DEBUG sin tocar este flag.
-            bool popupViajeEvento = false;
-            if (result.HuboAveria || (popupViajeEvento && result.EventoTexto != null))
+            // Popup DEBUG del viaje: solo la avería lo abre (los eventos con decisión
+            // tienen su propio popup de gameplay con opciones).
+            if (result.HuboAveria)
             {
-                var partes = new List<string>();
-                if (result.HuboAveria)
-                    partes.Add(
-                        $"⚠ Avería en ruta: el motor tose y pierdes piezas por el camino (-{VehicleService.DanoAveria} vehículo).\n" +
-                        $"Salud: {VehiculoTexto} · Prob. al salir: {result.ProbAveria}% · Próximo viaje: {ProbabilidadAveria}%");
-                if (popupViajeEvento && result.EventoTexto != null)
-                    partes.Add($"🎲 {result.EventoTexto}\nProb. eventos: {result.ProbEvento}%");
-
-                PopupTitulo = result.HuboAveria && result.EventoTexto != null ? "⚠🎲 VIAJE (DEBUG)"
-                    : result.HuboAveria ? "⚠ AVERÍA (DEBUG)"
-                    : "🎲 EVENTO (DEBUG)";
-                PopupTexto = string.Join("\n\n", partes);
+                PopupTitulo = "⚠ AVERÍA (DEBUG)";
+                PopupTexto =
+                    $"⚠ Avería en ruta: el motor tose y pierdes piezas por el camino (-{VehicleService.DanoAveria} vehículo).\n" +
+                    $"Salud: {VehiculoTexto} · Prob. al salir: {result.ProbAveria}% · Próximo viaje: {ProbabilidadAveria}%";
                 PopupVisible = true;
             }
 #endif
 
             // Decisión pendiente de gameplay: popup con opciones (siempre, no solo DEBUG).
-            if (result.DecisionPendiente != null)
-                MostrarDecision(result.DecisionPendiente);
+            RecibirDecisiones(result.DecisionesPendientes);
 
             // Notificaciones por eventos
             foreach (var evt in result.Events)

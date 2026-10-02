@@ -550,10 +550,10 @@
                             ToolTip="Tira la probabilidad actual y enseña el resultado (sin daño)" />
                     <Button Content="🎲 Evento grande" Tag="eventoG" Click="Dbg_Click"
                             Style="{StaticResource BaseButton}" Height="26" FontSize="11" Padding="10,0" Margin="0,0,6,0"
-                            ToolTip="Fuerza un evento grande real del pool (efectos aplicados)" />
+                            ToolTip="Fuerza una decisión grande (elige opción; sin diario)" />
                     <Button Content="🎲 Evento menor" Tag="eventoM" Click="Dbg_Click"
                             Style="{StaticResource BaseButton}" Height="26" FontSize="11" Padding="10,0" Margin="0,0,6,0"
-                            ToolTip="Fuerza un evento menor real del pool (efectos aplicados)" />
+                            ToolTip="Fuerza una decisión (elige opción; sin diario)" />
                     <Button Content="🎲 Decisión" Tag="decisionD" Click="Dbg_Click"
                             Style="{StaticResource BaseButton}" Height="26" FontSize="11" Padding="10,0" Margin="0,0,6,0"
                             ToolTip="Fuerza la gasolinera (elige opción; sin diario)" />

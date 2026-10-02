@@ -146,6 +146,7 @@ public static class TravelService
             {
                 eventoViaje = evt;
                 events.Add(evt);
+                s.Diario.Add($"Día {s.Dia} {s.Hora:00}:00: 🎲 {evt}");
                 texto += "\n" + evt;
             }
         }
@@ -156,6 +157,7 @@ public static class TravelService
             if (chapuceo != null)
             {
                 events.Add(chapuceo);
+                s.Diario.Add($"Día {s.Dia} {s.Hora:00}:00: 🎲 Parada en {destino.Name}: {chapuceo}");
                 texto += $"\nParada en {destino.Name}: descansas y miras a ver qué se puede aprovechar.\n{chapuceo}";
             }
         }

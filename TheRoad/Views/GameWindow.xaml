@@ -366,6 +366,13 @@
                                                 Style="{StaticResource PrimaryButton}"
                                                 Height="40" FontSize="13" />
 
+                                        <Button Content="🔎 REBUSCAR ALREDEDORES (4 h)"
+                                                Click="BtnRebuscar_Click"
+                                                IsEnabled="{Binding PuedeRebuscar}"
+                                                Style="{StaticResource PrimaryButton}"
+                                                Height="40" FontSize="13" Margin="0,8,0,0"
+                                                ToolTip="Solo con el coche a 0: rebuscas a pie los alrededores." />
+
                                         <TextBlock Text="Cada chatarra repara +20 (máx. 100). A 0 el coche no anda."
                                                    Style="{StaticResource MonoTextBlock}"
                                                    FontSize="10" Opacity="0.6" TextWrapping="Wrap"

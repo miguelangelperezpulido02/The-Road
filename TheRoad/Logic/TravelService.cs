@@ -128,8 +128,16 @@ public static class TravelService
 
         if (s.Player.Agua == 0)
         {
-            s.Player.HP = Math.Max(0, s.Player.HP - 10);
-            texto += "\nLa sed te pasa factura (-10 HP).";
+            int sed = Math.Min(s.Player.HP, ItemsService.SedPorViaje);
+            s.Player.HP -= sed;
+            texto += $"\nLa sed te pasa factura (-{sed} HP).";
+        }
+
+        if (s.Player.Comida == 0)
+        {
+            int hambre = Math.Min(s.Player.HP, ItemsService.HambrePorViaje);
+            s.Player.HP -= hambre;
+            texto += $"\nEl hambre aprieta (-{hambre} HP).";
         }
 
         int danoHambruna = ItemsService.AplicarHambruna(s.Player, diasTranscurridos);

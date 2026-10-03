@@ -18,6 +18,12 @@ public static class ItemsService
     /// <summary>HP perdidos por cada día pasado sin comida (Comida == 0).</summary>
     public const int HambrunaPorDia = 5;
 
+    /// <summary>HP perdidos por cada viaje sin comida en el inventario.</summary>
+    public const int HambrePorViaje = 2;
+
+    /// <summary>HP perdidos por cada viaje sin agua en el inventario.</summary>
+    public const int SedPorViaje = 5;
+
     /// <summary>Huecos físicos del inventario (8x8).</summary>
     public const int Capacidad = 64;
 

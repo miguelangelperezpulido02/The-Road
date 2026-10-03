@@ -35,6 +35,9 @@ public class GameState
     // Huellas: marcas que dejan algunas decisiones y condicionan otras (Fase B).
     public HashSet<string> Marcas { get; set; } = [];
 
+    /// <summary>Derivada: sin HP no hay acciones (game-over). Sin flag que sincronizar.</summary>
+    public bool EstaMuerto => Player.HP <= 0;
+
     /// <summary>Añade una línea al diario con el prefijo de día/hora actual.</summary>
     public void AnadirDiario(string texto) => Diario.Add($"Día {Dia} {Hora:00}:00: {texto}");
 }

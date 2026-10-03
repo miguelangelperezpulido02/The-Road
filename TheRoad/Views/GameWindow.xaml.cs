@@ -67,6 +67,12 @@ public partial class GameWindow : MetroWindow
         VistaMapa.Refrescar();
     }
 
+    private void BtnRebuscar_Click(object sender, RoutedEventArgs e)
+    {
+        _vm.RebuscarAlrededores();
+        VistaMapa.Refrescar();
+    }
+
     private void BtnCerrarPopup_Click(object sender, RoutedEventArgs e)
     {
         _vm.CerrarPopup();

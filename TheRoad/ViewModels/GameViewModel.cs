@@ -234,6 +234,8 @@ public class GameViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(ProbabilidadAveriaTexto));
         OnPropertyChanged(nameof(ChatarraCount));
         OnPropertyChanged(nameof(PuedeReparar));
+        OnPropertyChanged(nameof(PuedeRebuscar));
+        OnPropertyChanged(nameof(EstaMuerto));
         OnPropertyChanged(nameof(PuedeViajar));
     }
 
@@ -245,7 +247,10 @@ public class GameViewModel : INotifyPropertyChanged
     public string VehiculoTexto => $"{_state.Vehiculo}/{VehicleService.MaxEstado}";
     public int ChatarraCount => VehicleService.ChatarraCount(_state.Player);
     public bool PuedeReparar => _state.Vehiculo < VehicleService.MaxEstado
-        && VehicleService.ChatarraCount(_state.Player) > 0;
+        && VehicleService.ChatarraCount(_state.Player) > 0
+        && !_state.EstaMuerto;
+
+    public bool EstaMuerto => _state.EstaMuerto;
 
     // --- Avería: probabilidad visible en % ---
     public int ProbabilidadAveria => VehicleService.ProbabilidadAveria(_state.Vehiculo);
@@ -463,6 +468,7 @@ public class GameViewModel : INotifyPropertyChanged
 
     public void RepararVehiculo()
     {
+        if (_state.EstaMuerto) { Narrativa = "Estás muerto. El coche ya no te lleva a ninguna parte."; return; }
         string? texto = VehicleService.Reparar(_state.Player, _state);
         if (texto != null)
         {
@@ -729,9 +735,10 @@ public class GameViewModel : INotifyPropertyChanged
             LastTravelResult = result;
 
             Narrativa = result.Narrative;
-            _destinoSelId = null;
-            _opcionSel = null;
+            DestinoSeleccionadoId = null;
+            OpcionSeleccionada = null;
             RefrescarOpciones();
+            OnPropertyChanged(nameof(Destinos));
             SyncFromState();
 
 #if DEBUG
@@ -759,9 +766,13 @@ public class GameViewModel : INotifyPropertyChanged
                 AddNotification(evt, type);
             }
 
-            if (_state.Player.HP <= 0)
+            if (_state.EstaMuerto)
             {
+                string lugar = _lugares.FirstOrDefault(x => x.Id == _state.CurrentLocationId)?.Name ?? "la carretera";
                 Narrativa += "\n\nHas muerto. El viaje termina aquí.";
+                PopupTitulo = "☠ FIN DEL VIAJE";
+                PopupTexto = $"Has muerto el día {_state.Dia} a las {_state.Hora:00}:00, en {lugar}.\nEl camino sigue sin ti.";
+                PopupVisible = true;
                 AddNotification("Has muerto. Fin del viaje.", NotificationType.Danger);
             }
 
@@ -782,9 +793,24 @@ public class GameViewModel : INotifyPropertyChanged
         }
     }
 
+    /// <summary>Anti-softlock: con el coche a 0, rebuscar los alrededores a pie (4 h) como decisión.</summary>
+    public bool PuedeRebuscar => _state.Vehiculo <= 0 && !_state.EstaMuerto;
+
+    public void RebuscarAlrededores()
+    {
+        if (!PuedeRebuscar) return;
+        _state.AvanzarHoras(4);
+        var dec = Eventos.DecisionRebusca(_state);
+        _state.AnadirDiario("🔧 Rebuscas los alrededores a pie (4 h).");
+        if (dec != null) RecibirDecisiones(new[] { dec });
+        else Narrativa = "Rebuscas los alrededores durante horas y no encuentras nada útil.";
+        SyncFromState();
+    }
+
     public void UsarItem(string? item)
     {
         if (string.IsNullOrEmpty(item)) return;
+        if (_state.EstaMuerto) { Narrativa = "Estás muerto. Los objetos ya no te sirven."; return; }
         string? texto = ItemsService.Usar(item, _state.Player);
         if (texto != null)
         {

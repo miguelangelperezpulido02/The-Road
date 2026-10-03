@@ -6,6 +6,7 @@ public static class GameData
 {
     private static List<Location>? _locationsCache;
     private static List<Route>? _routesCache;
+    private static DataService.EventsData? _eventsCache;
 
     public static List<Location> Locations()
     {
@@ -21,7 +22,15 @@ public static class GameData
         return _routesCache;
     }
 
-    public static DataService.EventsData Events => DataService.LoadEvents();
+    public static DataService.EventsData Events
+    {
+        get
+        {
+            if (_eventsCache == null)
+                _eventsCache = DataService.LoadEvents();
+            return _eventsCache;
+        }
+    }
 
     public static GameState NuevaPartida(Player jugador)
     {

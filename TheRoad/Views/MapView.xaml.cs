@@ -317,11 +317,11 @@ public partial class MapView : UserControl
             MinimapCanvas.Children.Add(ellipse);
         }
 
-        // Update viewport indicator
-        double vpWidth = MapBorder.ActualWidth * _currentScale * scale;
-        double vpHeight = MapBorder.ActualHeight * _currentScale * scale;
-        double vpX = -MapTranslateTransform.X * scale;
-        double vpY = -MapTranslateTransform.Y * scale;
+        // Update viewport indicator (viewport en coords de contenido / escala, luego a minimapa).
+        double vpWidth = MapBorder.ActualWidth / _currentScale * scale;
+        double vpHeight = MapBorder.ActualHeight / _currentScale * scale;
+        double vpX = -MapTranslateTransform.X / _currentScale * scale;
+        double vpY = -MapTranslateTransform.Y / _currentScale * scale;
 
         MinimapViewport.Width = Math.Max(10, vpWidth);
         MinimapViewport.Height = Math.Max(10, vpHeight);
@@ -338,7 +338,11 @@ public partial class MapView : UserControl
         }
 
         var l = vm.Lugares.FirstOrDefault(x => x.Id == destino);
-        if (l == null) return;
+        if (l == null)
+        {
+            InfoPanel.Visibility = Visibility.Collapsed;
+            return;
+        }
 
         InfoPanel.Visibility = Visibility.Visible;
         InfoTitle.Text = l.Name;
@@ -455,10 +459,26 @@ public partial class MapView : UserControl
         double viewportWidth = MapBorder.ActualWidth;
         double viewportHeight = MapBorder.ActualHeight;
 
-        double minX = Math.Min(0, viewportWidth - scaledWidth);
-        double minY = Math.Min(0, viewportHeight - scaledHeight);
-        double maxX = Math.Max(0, viewportWidth - scaledWidth);
-        double maxY = Math.Max(0, viewportHeight - scaledHeight);
+        double minX, maxX, minY, maxY;
+        if (scaledWidth <= viewportWidth)
+        {
+            // Contenido menor que el viewport: centrado, sin paneo al vacío.
+            minX = maxX = (viewportWidth - scaledWidth) / 2;
+        }
+        else
+        {
+            minX = viewportWidth - scaledWidth;
+            maxX = 0;
+        }
+        if (scaledHeight <= viewportHeight)
+        {
+            minY = maxY = (viewportHeight - scaledHeight) / 2;
+        }
+        else
+        {
+            minY = viewportHeight - scaledHeight;
+            maxY = 0;
+        }
 
         MapTranslateTransform.X = Math.Clamp(MapTranslateTransform.X, minX, maxX);
         MapTranslateTransform.Y = Math.Clamp(MapTranslateTransform.Y, minY, maxY);

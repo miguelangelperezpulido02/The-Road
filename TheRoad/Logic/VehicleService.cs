@@ -20,7 +20,8 @@ public static class VehicleService
     /// <summary>% máximo de avería con el vehículo al mínimo. A 100 de salud es 0%.</summary>
     public const int AveriaMax = 30;
 
-    private static readonly Random _rnd = new();
+    public static bool HayAveria(int estadoPrevio)
+        => Random.Shared.Next(1, 101) <= ProbabilidadAveria(estadoPrevio);
 
     /// <summary>Desgaste determinista por viaje: 2 + riesgo (3-5).</summary>
     public static int DesgastePorViaje(Route r) => 2 + r.Riesgo;
@@ -28,9 +29,6 @@ public static class VehicleService
     /// <summary>Probabilidad de avería (%) lineal: 0% a 100 de salud, sube al bajar la salud.</summary>
     public static int ProbabilidadAveria(int estado)
         => Math.Clamp((MaxEstado - estado) * AveriaMax / MaxEstado, 0, AveriaMax);
-
-    public static bool HayAveria(int estadoPrevio)
-        => _rnd.Next(1, 101) <= ProbabilidadAveria(estadoPrevio);
 
     /// <summary>Null = puede viajar. A 0 el coche no anda.</summary>
     public static string? PuedeViajar(GameState s)

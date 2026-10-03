@@ -85,7 +85,7 @@ public static class CharacterCreator
 
     public static Player CrearAleatorio(string nombreBase = "Superviviente")
     {
-        var rnd = new Random();
+        var rnd = Random.Shared;
         var p = new Player { Name = nombreBase };
         int restantes = PuntosIniciales;
         while (restantes > 0)

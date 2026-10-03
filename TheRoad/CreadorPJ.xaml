@@ -2,9 +2,8 @@
                       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                       xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
-                      xmlns:local="clr-namespace:TheRoad"
-                      xmlns:vm="clr-namespace:TheRoad.ViewModels"
-                      Title="The Road — Crear Superviviente"
+                       xmlns:local="clr-namespace:TheRoad"
+                       Title="The Road — Crear Superviviente"
                        Height="700" Width="1000"
                       MinHeight="620" MinWidth="880"
                       Background="{StaticResource BrushBgDark}"
@@ -23,10 +22,6 @@
             <Button Content="⚙ Opciones" ToolTip="Opciones" Click="BtnOptions_Click" />
         </controls:WindowCommands>
     </controls:MetroWindow.RightWindowCommands>
-
-    <Window.DataContext>
-        <vm:CharacterCreatorViewModel />
-    </Window.DataContext>
 
     <Grid Background="{StaticResource BrushBgDarkest}">
 

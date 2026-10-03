@@ -72,45 +72,6 @@ namespace TheRoad.Converters
             => throw new NotSupportedException();
     }
 
-    public class InverseBoolConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-            => value is bool b ? !b : true;
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-            => value is bool b ? !b : true;
-    }
-
-    public class ResourceLevelToColorConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is double ratio)
-            {
-                if (ratio > 0.6) return new SolidColorBrush(Color.FromRgb(0x6B, 0x8E, 0x5C));
-                if (ratio > 0.3) return new SolidColorBrush(Color.FromRgb(0xD8, 0xA5, 0x45));
-                return new SolidColorBrush(Color.FromRgb(0xE0, 0x7A, 0x5F));
-            }
-            return new SolidColorBrush(Color.FromRgb(0x6B, 0x8E, 0x5C));
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-            => throw new NotSupportedException();
-    }
-
-    public class ItemCountToStringConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is int count && count > 1)
-                return $"x{count}";
-            return string.Empty;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-            => throw new NotSupportedException();
-    }
-
     public class StringToVisibilityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -156,15 +117,6 @@ namespace TheRoad.Converters
             }
             return new SolidColorBrush(Colors.Gray);
         }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-            => throw new NotSupportedException();
-    }
-
-    public class BoolToOpacityConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-            => value is bool b ? (b ? 1.0 : 0.5) : 1.0;
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
             => throw new NotSupportedException();
@@ -221,7 +173,9 @@ namespace TheRoad.Converters
     public class NullToVisibilityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-            => value != null ? Visibility.Visible : Visibility.Collapsed;
+            => value == null || (value is string s && s.Length == 0)
+                ? Visibility.Collapsed
+                : Visibility.Visible;
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
             => throw new NotSupportedException();

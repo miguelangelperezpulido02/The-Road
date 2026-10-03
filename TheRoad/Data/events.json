@@ -1,5 +1,5 @@
 {
-  "_nota-autoria": "REGLA A/B/C: toda decision trae A-riesgosa (pierdes X, ganas Y grande), B-segura (efecto original o pequeno) y C-evitar (nada o coste menor). En amenazas puras: riesgo mayor / riesgo menor / evitar. Cada opcion lleva hint corto y result con numeros exactos. CONDICIONES: 'requiere' (recurso+min, deshabilita), 'requiereMarca'/'sinMarca' (oculta opcion o filtra evento). Toda decision conserva >=1 opcion incondicional. MOMENTO: 'momento' dia/noche solo si la narrativa lo pide (oscuridad, mercado, faros); sin momento = siempre. El sorteo filtra por momento de llegada y cae a genericos si el pool se vacia. HUELLAS (E): violencia (fuerza/dano), saqueo (llevarse restos o lo ajeno), sigilo (pasar desapercibido), generosidad (dar/ayudar/perdonar), cautela (evitar/rodear/esperar). Toda opcion con carga narrativa otorga huella en 'marcas' (lista, convive con marcas especificas); las neutras pueden no tenerla.",
+  "_nota-autoria": "REGLA A/B/C: toda decision trae A-riesgosa (pierdes X, ganas Y grande), B-segura (efecto original o pequeno) y C-evitar (nada o coste menor). En amenazas puras: riesgo mayor / riesgo menor / evitar. Cada opcion lleva hint corto y result con numeros exactos. CONDICIONES: 'requiere' (recurso+min, deshabilita), 'requiereMarca'/'sinMarca' (oculta opcion o filtra evento). Toda decision conserva >=1 opcion incondicional. MOMENTO: 'momento' dia/noche solo si la narrativa lo pide (oscuridad, mercado, faros); sin momento = siempre. El sorteo filtra por momento de llegada y cae a genericos si el pool se vacia. HUELLAS (E): violencia (fuerza/dano), saqueo (llevarse restos o lo ajeno), sigilo (pasar desapercibido), generosidad (dar/ayudar/perdonar), cautela (evitar/rodear/esperar). Toda opcion con carga narrativa otorga huella en 'marcas' (lista, convive con marcas especificas); las neutras pueden no tenerla. ECO (oleada 2): eventos con 'requiereMarca' tematica reaccionan a huellas (fama/generosidad, temor/violencia, rastros/sigilo, ajuste/saqueo, cazadores/violencia, caravana/generosidad, escondite/sigilo, refugio/cautela).",
   "decisionScavenge": [
     {
       "id": "rebusca-bidon",
@@ -86,9 +86,9 @@
         },
         {
           "text": "Rodear y mirar desde fuera",
-          "hint": "+1 agua",
-          "effects": { "water": 1, "marcas": ["sigilo"] },
-          "result": "Rodeas por fuera y llenas en el aljibe trasero (+1 agua). Nadie te ve."
+          "hint": "+2 agua",
+          "effects": { "water": 2, "marcas": ["sigilo"] },
+          "result": "Rodeas por fuera y llenas en el aljibe trasero (+2 agua). Nadie te ve."
         }
       ]
     },
@@ -108,6 +108,63 @@
           "hint": "-1 comida, +4 vehículo",
           "effects": { "food": -1, "vehicle": 4 },
           "result": "Le das una lata y te ajusta el motor (-1 comida, +4 vehículo)."
+        }
+      ]
+    },
+    {
+      "id": "aljibe",
+      "text": "Un aljibe cubierto aguanta junto a la parada.",
+      "options": [
+        {
+          "text": "Vaciarlo en tus bidones",
+          "hint": "+3 agua, -2 HP",
+          "effects": { "water": 3, "hp": -2, "marcas": ["saqueo"] },
+          "result": "Lo vacías entero (+3 agua). El óxido te revuelve el estómago (-2 HP)."
+        },
+        {
+          "text": "Llenar solo la cantimplora",
+          "hint": "+2 agua",
+          "effects": { "water": 2, "marcas": ["cautela"] },
+          "result": "Llenas lo justo (+2 agua) y dejas el resto para el próximo."
+        }
+      ]
+    },
+    {
+      "id": "escondite",
+      "momento": "noche",
+      "requiereMarca": "sigilo",
+      "text": "Tu escondite de la última vez sigue intacto: nadie lo encontró.",
+      "options": [
+        {
+          "text": "Vaciarlo y mudarte",
+          "hint": "+2 comida",
+          "effects": { "food": 2, "marcas": ["sigilo"] },
+          "result": "Recuperas tus reservas (+2 comida) y lo sellas para mudarte."
+        },
+        {
+          "text": "Dejarlo como está",
+          "hint": "+1 medicina",
+          "effects": { "medicine": 1 },
+          "result": "Revisas tus vendas guardadas (+1 medicina) y lo dejas sellado."
+        }
+      ]
+    },
+    {
+      "id": "refugio",
+      "requiereMarca": "cautela",
+      "text": "Encuentras un refugio marcado en tu propio mapa: tu yo cauteloso lo preparó.",
+      "options": [
+        {
+          "text": "Abrirlo y equiparte",
+          "hint": "+1 comida, +1 agua",
+          "effects": { "food": 1, "water": 1, "marcas": ["cautela"] },
+          "result": "Dentro hay latas y una garrafa (+1 comida, +1 agua). Bien pensado."
+        },
+        {
+          "text": "Dejarlo sellado",
+          "hint": "Sin cambios",
+          "effects": { "marcas": ["sigilo"] },
+          "result": "Lo dejas intacto para una emergencia peor. Nadie sabrá que existe."
         }
       ]
     }
@@ -287,6 +344,57 @@
           "hint": "-1 comida",
           "effects": { "food": -1, "marcas": ["cautela"] },
           "result": "Esperas parado a que la polvareda se disipe. Comes algo mientras (-1 comida)."
+        }
+      ]
+    },
+    {
+      "id": "cazadores",
+      "requiereMarca": "violencia",
+      "text": "Carteles con tu cara: cazadores de recompensas patrullan la autopista.",
+      "options": [
+        {
+          "text": "Embocarlos de frente",
+          "hint": "-15 HP, +6 gasolina",
+          "effects": { "hp": -15, "fuel": 6, "marcas": ["violencia"] },
+          "result": "Los emboscas tú a ellos (-15 HP) y les quitas la gasolina (+6 gasolina)."
+        },
+        {
+          "text": "Esquivar sus controles",
+          "hint": "-4 gasolina",
+          "effects": { "fuel": -4, "marcas": ["cautela"] },
+          "result": "Gastas gasolina en pistas laterales (-4 gasolina) y los dejas atrás."
+        },
+        {
+          "text": "Esperar a que se vayan",
+          "hint": "+1 día, -1 comida",
+          "effects": { "days": 1, "food": -1, "marcas": ["cautela"] },
+          "result": "Te escondes un día entero (+1 día, -1 comida). La paciencia también caza."
+        }
+      ]
+    },
+    {
+      "id": "caravana-grande",
+      "momento": "dia",
+      "requiereMarca": "generosidad",
+      "text": "Una gran caravana oyó de tu generosidad y te abre sus puertas.",
+      "options": [
+        {
+          "text": "Escoltarla un tramo",
+          "hint": "-4 gasolina, +3 comida, +1 medicina",
+          "effects": { "fuel": -4, "food": 3, "medicine": 1, "marcas": ["generosidad"] },
+          "result": "La escoltas gastando gasolina (-4 gasolina) y te pagan con creces (+3 comida, +1 medicina)."
+        },
+        {
+          "text": "Comerciar con ellos",
+          "hint": "-1 comida, +4 vehículo",
+          "effects": { "food": -1, "vehicle": 4 },
+          "result": "Cambias una lata por piezas (-1 comida, +4 vehículo). Trato de amigos."
+        },
+        {
+          "text": "Seguir tu camino",
+          "hint": "Sin cambios",
+          "effects": {},
+          "result": "Agradeces y sigues. Cada uno a lo suyo."
         }
       ]
     }
@@ -542,6 +650,132 @@
           "hint": "Sin cambios",
           "effects": {},
           "result": "Mucho trasto y poca prisa ajena. Sigues tu camino."
+        }
+      ]
+    },
+    {
+      "id": "arroyo",
+      "text": "Un arroyo de agua clara cruza bajo la secundaria.",
+      "options": [
+        {
+          "text": "Beber y llenar sin mirar",
+          "hint": "+3 agua, -3 HP",
+          "effects": { "water": 3, "hp": -3 },
+          "result": "Bebes y llenas todo (+3 agua). El agua estaba peor de lo que parecía (-3 HP)."
+        },
+        {
+          "text": "Hervir y filtrar con calma",
+          "hint": "+2 agua",
+          "effects": { "water": 2, "marcas": ["cautela"] },
+          "result": "Hierves y filtras con calma (+2 agua). Agua segura, tiempo bien gastado."
+        },
+        {
+          "text": "Seguir sin parar",
+          "hint": "Sin cambios",
+          "effects": { "marcas": ["cautela"] },
+          "result": "No te fías de arroyos desconocidos. Sigues tu camino."
+        }
+      ]
+    },
+    {
+      "id": "fama",
+      "momento": "dia",
+      "requiereMarca": "generosidad",
+      "text": "Unos viajeros te reconocen: '¡El de la mano abierta!'. Te ofrecen asiento junto al fuego.",
+      "options": [
+        {
+          "text": "Compartir tus provisiones",
+          "hint": "-2 comida, +1 medicina",
+          "effects": { "food": -2, "medicine": 1, "marcas": ["generosidad"] },
+          "result": "Repartes tus latas (-2 comida) y te regalan vendas (+1 medicina). Cantan tu nombre."
+        },
+        {
+          "text": "Aceptar solo un plato",
+          "hint": "+1 comida",
+          "effects": { "food": 1 },
+          "result": "Comes con ellos (+1 comida) sin comprometerte. Buena gente."
+        },
+        {
+          "text": "Seguir tu camino",
+          "hint": "Sin cambios",
+          "effects": { "marcas": ["cautela"] },
+          "result": "Agradeces y sigues. La fama también cansa."
+        }
+      ]
+    },
+    {
+      "id": "temor",
+      "momento": "noche",
+      "requiereMarca": "violencia",
+      "text": "Apagan sus hogueras al verte llegar: tu fama violenta te precede.",
+      "options": [
+        {
+          "text": "Aprovechar el miedo y exigir",
+          "hint": "+3 comida",
+          "effects": { "food": 3, "marcas": ["violencia"] },
+          "result": "Exiges tributo y pagan sin rechistar (+3 comida). El miedo es un impuesto."
+        },
+        {
+          "text": "Calmarlos y pedir paso",
+          "hint": "+1 agua",
+          "effects": { "water": 1 },
+          "result": "Levantas las manos y hablas suave. Te dan agua (+1 agua) y pasas."
+        },
+        {
+          "text": "Rodear el campamento",
+          "hint": "Sin cambios",
+          "effects": { "marcas": ["cautela"] },
+          "result": "Los rodeas por la oscuridad. Mejor no avivar la leyenda."
+        }
+      ]
+    },
+    {
+      "id": "rastros",
+      "requiereMarca": "sigilo",
+      "text": "Encuentras tus propias marcas de paso: nadie notó que estuviste aquí.",
+      "options": [
+        {
+          "text": "Cazar en tu propio rastro",
+          "hint": "+2 comida, -3 HP",
+          "effects": { "food": 2, "hp": -3, "marcas": ["sigilo"] },
+          "result": "Conoces el terreno al dedillo: cazas (+2 comida) aunque te haces daño (-3 HP)."
+        },
+        {
+          "text": "Seguir sin tocar nada",
+          "hint": "Sin cambios",
+          "effects": { "marcas": ["sigilo"] },
+          "result": "Pasas como una sombra. Ni el polvo te recuerda."
+        },
+        {
+          "text": "Dejar una señal falsa",
+          "hint": "Sin cambios",
+          "effects": {},
+          "result": "Dejas huellas hacia el norte y sigues al este. Que busquen."
+        }
+      ]
+    },
+    {
+      "id": "ajuste",
+      "requiereMarca": "saqueo",
+      "text": "Alguien a quien saqueaste te reconoce entre el polvo del camino.",
+      "options": [
+        {
+          "text": "Devolverle algo",
+          "hint": "-2 comida",
+          "effects": { "food": -2, "marcas": ["generosidad"] },
+          "result": "Le devuelves latas (-2 comida). El rencor se disuelve un poco."
+        },
+        {
+          "text": "Apretar el paso",
+          "hint": "Sin cambios",
+          "effects": { "marcas": ["sigilo"] },
+          "result": "Aceleras y lo pierdes entre el polvo. Asunto zanjado."
+        },
+        {
+          "text": "Amenazarle para que calle",
+          "hint": "Sin cambios",
+          "effects": { "marcas": ["violencia"] },
+          "result": "Le enseñas la palanca y huye sin mirar atrás. Mensaje enviado."
         }
       ]
     }

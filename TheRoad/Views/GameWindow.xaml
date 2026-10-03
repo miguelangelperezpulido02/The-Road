@@ -673,6 +673,7 @@
                                             Tag="{Binding Indice}"
                                             IsEnabled="{Binding Habilitada}"
                                             Click="BtnOpcionDecision_Click"
+                                            Style="{StaticResource PrimaryButton}"
                                             Margin="0,4" />
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>

@@ -34,11 +34,12 @@ public static class GameData
 
     public static GameState NuevaPartida(Player jugador)
     {
+        // Salida generosa: colchón para no morir en los primeros viajes (techos: 100/20/20/100/10).
         jugador.HP = 100;
-        jugador.Comida = 4;
-        jugador.Agua = 4;
-        jugador.Combustible = 20;
-        jugador.Medicina = 1;
+        jugador.Comida = 15;
+        jugador.Agua = 15;
+        jugador.Combustible = 80;
+        jugador.Medicina = 5;
         jugador.Inventario = ["Navaja", "Lata de conservas", "Vendaje", "Bidón de gasolina", "Chatarra"];
 
         return new GameState

@@ -117,13 +117,14 @@ namespace TheRoad.Services
 
                 if (data != null)
                 {
+                    // Por los setters: aplican clamp y notifican (un settings.json corrupto no cuela valores absurdos).
                     _windowSettings = data.WindowSettings ?? new WindowSettings();
-                    _sfxVolume = data.SfxVolume;
-                    _musicVolume = data.MusicVolume;
-                    _fullscreen = data.Fullscreen;
-                    _showTooltips = data.ShowTooltips;
-                    _typewriterEffect = data.TypewriterEffect;
-                    _typewriterSpeed = data.TypewriterSpeed;
+                    SfxVolume = data.SfxVolume;
+                    MusicVolume = data.MusicVolume;
+                    Fullscreen = data.Fullscreen;
+                    ShowTooltips = data.ShowTooltips;
+                    TypewriterEffect = data.TypewriterEffect;
+                    TypewriterSpeed = data.TypewriterSpeed;
                 }
 
                 AudioService.Instance.SetSfxVolume(_sfxVolume);

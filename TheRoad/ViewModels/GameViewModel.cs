@@ -145,7 +145,6 @@ public class GameViewModel : INotifyPropertyChanged
         _resourceBars.Add(new ResourceBarViewModel("Comida", "🍖", 20, _state.Player.Comida));
         _resourceBars.Add(new ResourceBarViewModel("Agua", "💧", 20, _state.Player.Agua));
         _resourceBars.Add(new ResourceBarViewModel("Gasolina", "⛽", 100, _state.Player.Combustible));
-        _resourceBars.Add(new ResourceBarViewModel("Medicina", "💊", 10, _state.Player.Medicina));
     }
 
     private void InitializeInventory() => RebuildInventory();
@@ -156,6 +155,7 @@ public class GameViewModel : INotifyPropertyChanged
         _inventoryItems.Clear();
 
         foreach (var group in _state.Player.Inventario
+            .Where(x => !string.IsNullOrEmpty(x)) // Entrada malformada: se ignora.
             .GroupBy(x => x)
             .OrderBy(g => GetItemCategory(g.Key))
             .ThenBy(g => g.Key))
@@ -212,7 +212,6 @@ public class GameViewModel : INotifyPropertyChanged
                 "Comida" => _state.Player.Comida,
                 "Agua" => _state.Player.Agua,
                 "Gasolina" => _state.Player.Combustible,
-                "Medicina" => _state.Player.Medicina,
                 _ => bar.Value
             };
         }
@@ -457,7 +456,8 @@ public class GameViewModel : INotifyPropertyChanged
             averia ? NotificationType.Warning : NotificationType.Info);
     }
 
-    /// <summary>Fija el reloj para probar eventos de día/noche (no avanza días).</summary>
+    /// <summary>Fija el reloj para probar eventos de día/noche. No toca el día:
+    /// viajar después puede cruzar la medianoche y sumar un día lateral.</summary>
     public void DebugFijarHora(int hora)
     {
         _state.Hora = Math.Clamp(hora, 0, 23);
@@ -493,6 +493,8 @@ public class GameViewModel : INotifyPropertyChanged
     // --- Notifications ---
     public IReadOnlyList<NotificationViewModel> Notifications => _notifications;
 
+    private CancellationTokenSource _notifCts = new();
+
     public void AddNotification(string message, NotificationType type = NotificationType.Info)
     {
         var notification = new NotificationViewModel(message, type);
@@ -501,17 +503,25 @@ public class GameViewModel : INotifyPropertyChanged
             _notifications.RemoveAt(_notifications.Count - 1);
         OnPropertyChanged(nameof(Notifications));
 
+        // Si se canceló al cerrar la ventana, se reabre el grifo para la siguiente.
+        if (_notifCts.IsCancellationRequested) _notifCts = new CancellationTokenSource();
+        var token = _notifCts.Token;
+
         // Se auto-descarta pasados unos segundos, tolerando el cierre de la app.
         _ = Task.Run(async () =>
         {
-            await Task.Delay(TimeSpan.FromSeconds(5));
             try
             {
+                await Task.Delay(TimeSpan.FromSeconds(5), token);
                 Application.Current?.Dispatcher.InvokeAsync(() =>
                 {
                     if (_notifications.Remove(notification))
                         OnPropertyChanged(nameof(Notifications));
                 });
+            }
+            catch (OperationCanceledException)
+            {
+                // Ventana cerrada: la notificación ya no importa.
             }
             catch
             {
@@ -519,6 +529,9 @@ public class GameViewModel : INotifyPropertyChanged
             }
         });
     }
+
+    /// <summary>Cancela los auto-descartes pendientes (al cerrar la ventana).</summary>
+    public void CancelarNotificaciones() => _notifCts.Cancel();
 
     // --- Travel Animation ---
     public bool IsTraveling
@@ -757,13 +770,17 @@ public class GameViewModel : INotifyPropertyChanged
             // Decisión pendiente de gameplay: popup con opciones (siempre, no solo DEBUG).
             RecibirDecisiones(result.DecisionesPendientes);
 
-            // Notificaciones por eventos
-            foreach (var evt in result.Events)
+            // Notificaciones por eventos (tono tipado en origen, sin parsear texto).
+            foreach (var aviso in result.Events)
             {
-                var type = evt.Contains("encuentras") || evt.Contains("hallan") || evt.Contains("+") ? NotificationType.Success :
-                           evt.Contains("pierdes") || evt.Contains("roba") || evt.Contains("-") ? NotificationType.Warning :
-                           NotificationType.Info;
-                AddNotification(evt, type);
+                var type = aviso.Tono switch
+                {
+                    EventoTono.Bueno => NotificationType.Success,
+                    EventoTono.Malo => NotificationType.Warning,
+                    EventoTono.Decision => NotificationType.Scavenge,
+                    _ => NotificationType.Info,
+                };
+                AddNotification(aviso.Texto, type);
             }
 
             if (_state.EstaMuerto)

@@ -3,7 +3,6 @@ using System.Windows;
 using System.Windows.Controls;
 using MahApps.Metro.Controls;
 using Microsoft.Win32;
-using TheRoad.Converters;
 using TheRoad.ViewModels;
 
 namespace TheRoad;
@@ -16,11 +15,6 @@ public partial class CreadorPJWindow : MetroWindow
     {
         InitializeComponent();
         DataContext = _vm;
-
-        Resources.MergedDictionaries.Add(new ResourceDictionary
-        {
-            Source = new Uri("pack://application:,,,/TheRoad;component/Converters/CommonConverters.xaml", UriKind.Absolute)
-        });
 
         // El creador usa siempre su tamaño de diseño (1000x700) y abre centrado.
         WindowStartupLocation = WindowStartupLocation.CenterScreen;

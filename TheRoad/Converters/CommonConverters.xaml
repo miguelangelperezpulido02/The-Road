@@ -6,13 +6,9 @@
     <conv:BoolToVisibilityConverter x:Key="BoolToVis" />
     <conv:BoolToSegmentBrushConverter x:Key="BoolToSegmentBrush" />
     <conv:BoolToGlowEffectConverter x:Key="BoolToGlowEffect" />
-    <conv:InverseBoolConverter x:Key="InverseBool" />
-    <conv:ResourceLevelToColorConverter x:Key="ResourceLevelToColor" />
-    <conv:ItemCountToStringConverter x:Key="ItemCountToString" />
     <conv:StringToVisibilityConverter x:Key="StringToVis" />
     <conv:StringToBoolConverter x:Key="StringToBool" />
     <conv:StringToBrushConverter x:Key="StringToBrush" />
-    <conv:BoolToOpacityConverter x:Key="BoolToOpacity" />
     <conv:NotificationTypeToIconConverter x:Key="NotificationTypeToIcon" />
     <conv:NotificationTypeToColorConverter x:Key="NotificationTypeToColor" />
     <conv:HalfConverter x:Key="HalfConverter" />

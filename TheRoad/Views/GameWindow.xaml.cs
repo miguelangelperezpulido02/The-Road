@@ -24,6 +24,9 @@ public partial class GameWindow : MetroWindow
 
         SettingsService.Instance.ApplyWindowState(this);
 
+        // Al cerrar no quedan auto-descartes huérfanos.
+        Closed += (_, _) => _vm.CancelarNotificaciones();
+
         // Suscribir a cambios de vista para actualizar mapa
         _vm.PropertyChanged += (_, e) =>
         {

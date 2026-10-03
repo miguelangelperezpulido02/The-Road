@@ -2,9 +2,37 @@ using TheRoad.Models;
 
 namespace TheRoad.Logic;
 
+/// <summary>Tono de un aviso de viaje (tipado en origen para las notificaciones).</summary>
+public enum EventoTono { Info, Bueno, Malo, Decision }
+
+/// <summary>Aviso para notificaciones: texto + tono, sin parsear strings en la VM.</summary>
+public class AvisoViaje
+{
+    public string Texto { get; set; } = "";
+    public EventoTono Tono { get; set; } = EventoTono.Info;
+}
+
 public static class TravelService
 {
-    private static readonly Random _rnd = new();
+    // Costes y tiempos por km (autopista / secundaria) con mínimos por tramo.
+    public const int KmPorGasolinaLargo = 25;
+    public const int KmPorGasolinaSegmentado = 45;
+    public const int GasMinimoLargo = 2;
+    public const int GasMinimoSegmentado = 1;
+    public const int KmPorHoraLargo = 50;
+    public const int KmPorHoraSegmentado = 35;
+    public const int HorasMinimasLargo = 3;
+    public const int HorasMinimasSegmentado = 2;
+    public const int ImprevistoMaxHoras = 2; // 0..2 h aleatorias por tramo.
+
+    // Probabilidad de evento: base + porRiesgo * Riesgo (1-3), con techo 100%.
+    public const int ProbBaseLargo = 35;
+    public const int ProbPorRiesgoLargo = 20;
+    public const int ProbBaseSegmentado = 20;
+    public const int ProbPorRiesgoSegmentado = 15;
+
+    /// <summary>Probabilidad de parada espontánea en secundaria (Fase C).</summary>
+    public const int ProbEspontanea = 20;
 
     public static List<Route> DestinosDesde(GameState s, List<Route> todas)
         => todas.Where(r => r.FromId == s.CurrentLocationId || r.ToId == s.CurrentLocationId).ToList();
@@ -17,18 +45,18 @@ public static class TravelService
 
     public static int CosteCombustible(Route r)
         => r.Tipo == TipoViaje.Largo
-            ? Math.Max(2, r.DistanceKm / 25)
-            : Math.Max(1, r.DistanceKm / 45);
+            ? Math.Max(GasMinimoLargo, r.DistanceKm / KmPorGasolinaLargo)
+            : Math.Max(GasMinimoSegmentado, r.DistanceKm / KmPorGasolinaSegmentado);
 
-    /// <summary>Horas base de una ruta por distancia (~50 km/h en autopista, ~35 km/h en secundaria). Mínimos 3/2 h.</summary>
+    /// <summary>Horas base de una ruta por distancia (~50 km/h en autopista, ~35 km/h en secundaria).</summary>
     public static int HorasBase(Route r)
         => r.Tipo == TipoViaje.Largo
-            ? Math.Max(3, r.DistanceKm / 50)
-            : Math.Max(2, r.DistanceKm / 35);
+            ? Math.Max(HorasMinimasLargo, r.DistanceKm / KmPorHoraLargo)
+            : Math.Max(HorasMinimasSegmentado, r.DistanceKm / KmPorHoraSegmentado);
 
-    /// <summary>Rango estimado de horas de viaje (base + 0-2 h de imprevistos). Para la UI.</summary>
+    /// <summary>Rango estimado de horas de viaje (base + imprevistos). Para la UI.</summary>
     public static (int Min, int Max) HorasEstimadas(Route r)
-        => (HorasBase(r), HorasBase(r) + 2);
+        => (HorasBase(r), HorasBase(r) + ImprevistoMaxHoras);
 
     public static string TiempoViajeTxt(Route r)
     {
@@ -42,9 +70,11 @@ public static class TravelService
         return $"{min}-{min + 2 * rutas.Count} h";
     }
 
-    /// <summary>Probabilidad de evento (%) de una ruta. Única fuente de verdad: la consultan el roll y la UI.</summary>
+    /// <summary>Probabilidad de evento (%) de una ruta, con techo 100%. Única fuente de verdad: la consultan el roll y la UI.</summary>
     public static int ProbabilidadEvento(Route r)
-        => r.Tipo == TipoViaje.Largo ? 35 + 20 * r.Riesgo : 20 + 15 * r.Riesgo;
+        => Math.Clamp(r.Tipo == TipoViaje.Largo
+            ? ProbBaseLargo + ProbPorRiesgoLargo * r.Riesgo
+            : ProbBaseSegmentado + ProbPorRiesgoSegmentado * r.Riesgo, 0, 100);
 
     public static List<Route> CaminoSegmentado(string desde, string hasta, List<Route> todas)
     {
@@ -105,7 +135,7 @@ public static class TravelService
 
         // Duracion variable: horas base por distancia + 0-2 h de imprevistos.
         int horaSalida = s.Hora;
-        int horas = HorasBase(r) + _rnd.Next(0, 3);
+        int horas = HorasBase(r) + Random.Shared.Next(0, ImprevistoMaxHoras + 1);
         s.AvanzarHoras(horas);
         int diasTranscurridos = (horaSalida + horas) / 24;
         s.CurrentLocationId = destinoId;
@@ -144,33 +174,33 @@ public static class TravelService
         if (danoHambruna > 0)
             texto += $"\nHambre: {diasTranscurridos} día(s) pasado(s) sin comida (-{danoHambruna} HP por hambruna).";
 
-        var events = new List<string>();
+        var events = new List<AvisoViaje>();
 
         // Probabilidad con la que se rueda este viaje (se captura antes del roll).
         int probEvento = ProbabilidadEvento(r);
         var decisionesPendientes = new List<DataService.DecisionDto>();
 
-        if (_rnd.Next(1, 101) <= probEvento)
+        if (Random.Shared.Next(1, 101) <= probEvento)
         {
             // Oleada 2: todo acierto es decisión (Largo: pool grande; Segmentado: pool menor).
             var dec = esLargo ? Eventos.DecisionGrande(s) : Eventos.DecisionMenor(s);
             if (dec != null)
             {
                 decisionesPendientes.Add(dec);
-                events.Add(dec.Text);
+                events.Add(new AvisoViaje { Texto = dec.Text, Tono = EventoTono.Decision });
                 s.AnadirDiario($"🎲{iconoMomento} {dec.Text}");
                 texto += "\n🎲" + iconoMomento + " " + dec.Text + "\n[Elige una opción.]";
             }
         }
 
         // Fase C: parada espontánea solo en secundaria (20%, máx 1/viaje, sobre la marcha).
-        if (!esLargo && _rnd.Next(100) < 20)
+        if (!esLargo && Random.Shared.Next(100) < ProbEspontanea)
         {
             var esp = Eventos.DecisionRebusca(s);
             if (esp != null)
             {
                 decisionesPendientes.Add(esp);
-                events.Add(esp.Text);
+                events.Add(new AvisoViaje { Texto = esp.Text, Tono = EventoTono.Decision });
                 s.AnadirDiario($"🎲{iconoMomento} Sobre la marcha: {esp.Text}");
                 texto += "\nSobre la marcha: paras un momento a mirar.\n🎲" + iconoMomento + " " + esp.Text + "\n[Elige una opción.]";
             }
@@ -183,7 +213,7 @@ public static class TravelService
             if (reb != null)
             {
                 decisionesPendientes.Add(reb);
-                events.Add(reb.Text);
+                events.Add(new AvisoViaje { Texto = reb.Text, Tono = EventoTono.Decision });
                 s.AnadirDiario($"🎲{iconoMomento} Parada en {destino.Name}: {reb.Text}");
                 texto += $"\nParada en {destino.Name}: descansas y miras a ver qué se puede aprovechar.\n🎲{iconoMomento} {reb.Text}\n[Elige una opción.]";
             }
@@ -222,7 +252,7 @@ public static class TravelService
         public string Narrative { get; set; } = "";
         public string DestinationId { get; set; } = "";
         public string DestinationName { get; set; } = "";
-        public List<string> Events { get; set; } = new();
+        public List<AvisoViaje> Events { get; set; } = new();
         public bool IsLongRoute { get; set; }
         public int FuelCost { get; set; }
         public Route Route { get; set; } = null!;

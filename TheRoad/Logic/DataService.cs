@@ -14,7 +14,7 @@ namespace TheRoad.Logic
         public static List<Location> LoadLocations()
         {
             var dto = LoadDto<LocationsDto>("locations.json");
-            return dto?.Locations?.Where(l => l != null).Select(l => new Location
+            var lista = dto?.Locations?.Where(l => l != null).Select(l => new Location
             {
                 Id = l.Id,
                 Name = l.Name,
@@ -23,6 +23,18 @@ namespace TheRoad.Logic
                 Y = l.Y,
                 EsParada = l.IsStop
             }).ToList() ?? new List<Location>();
+            // El mapa dibuja en un Canvas de 1400x760: ids únicos y coordenadas dentro.
+            var ids = new HashSet<string>();
+            foreach (var l in lista)
+            {
+                if (string.IsNullOrWhiteSpace(l.Id) || !ids.Add(l.Id))
+                    throw new InvalidOperationException(
+                        $"locations.json: id duplicado o vacío (\"{l.Id}\"). Los ids deben ser únicos.");
+                if (l.X < 0 || l.X > 1400 || l.Y < 0 || l.Y > 760)
+                    throw new InvalidOperationException(
+                        $"locations.json: {l.Id} fuera del Canvas 1400x760 ({l.X}, {l.Y}).");
+            }
+            return lista;
         }
 
         public static List<Route> LoadRoutes()
@@ -35,6 +47,15 @@ namespace TheRoad.Logic
                 if (!Enum.TryParse<TipoViaje>(r.Type, ignoreCase: true, out var tipo))
                     throw new InvalidOperationException(
                         $"routes.json: ruta {r.FromId} → {r.ToId} tiene type \"{r.Type}\" desconocido. Valores válidos: {string.Join(", ", Enum.GetNames<TipoViaje>())}.");
+                if (string.IsNullOrWhiteSpace(r.FromId) || string.IsNullOrWhiteSpace(r.ToId))
+                    throw new InvalidOperationException(
+                        $"routes.json: ruta con extremo vacío (\"{r.FromId}\" → \"{r.ToId}\").");
+                if (r.DistanceKm <= 0)
+                    throw new InvalidOperationException(
+                        $"routes.json: ruta {r.FromId} → {r.ToId} con distancia no positiva ({r.DistanceKm}).");
+                if (r.Risk < 1 || r.Risk > 3)
+                    throw new InvalidOperationException(
+                        $"routes.json: ruta {r.FromId} → {r.ToId} con Risk {r.Risk} fuera de 1-3.");
                 resultado.Add(new Route
                 {
                     FromId = r.FromId,
@@ -59,7 +80,7 @@ namespace TheRoad.Logic
             {
                 return JsonConvert.DeserializeObject<T>(File.ReadAllText(path));
             }
-            catch (Exception ex) when (ex is IOException || ex is JsonException)
+            catch (Exception ex)
             {
                 throw new InvalidOperationException(
                     $"No se pudo cargar {fileName} desde \"{path}\": {ex.Message}", ex);

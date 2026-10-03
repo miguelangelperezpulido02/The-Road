@@ -5,7 +5,6 @@ namespace TheRoad.Logic;
 public static class Eventos
 {
     private static readonly DataService.EventsData _events = GameData.Events;
-    private static readonly Random _rnd = new();
 
     /// <summary>Valor actual de un recurso por nombre (hp/food/water/medicine/fuel/vehicle).</summary>
     public static int ValorRecurso(GameState s, string recurso) => recurso switch
@@ -61,7 +60,7 @@ public static class Eventos
         if (lista.Count == 0)
             lista = base_.Where(d => string.IsNullOrEmpty(d.Momento)).ToList();
         if (lista.Count == 0) return null;
-        return lista[_rnd.Next(lista.Count)];
+        return lista[Random.Shared.Next(lista.Count)];
     }
 
     /// <summary>Sortea una decisión de Segmentado (pool Oleada 2). Null si está vacío.</summary>
@@ -107,6 +106,7 @@ public static class Eventos
         bool inventarioLleno = false;
         foreach (var item in e.Inventory ?? [])
         {
+            if (string.IsNullOrEmpty(item)) continue; // Entrada malformada: se ignora.
             if (s.Player.Inventario.Count >= ItemsService.Capacidad)
             {
                 inventarioLleno = true;

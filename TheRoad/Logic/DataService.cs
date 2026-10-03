@@ -116,6 +116,8 @@ namespace TheRoad.Logic
             public SoloSiDto? SoloSi { get; set; }
             public string? RequiereMarca { get; set; }
             public string? SinMarca { get; set; }
+            /// <summary>Momento del día: "dia", "noche" o null/vacío (cualquier momento).</summary>
+            public string? Momento { get; set; }
         }
 
         /// <summary>Condición de aparición del evento: solo sale si recurso <= max.</summary>

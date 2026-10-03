@@ -111,6 +111,9 @@ public static class TravelService
         s.CurrentLocationId = destinoId;
         s.Visitados.Add(destinoId);
 
+        // Momento de llegada (el roll ocurre tras avanzar el reloj): icono para diario y narrativa.
+        string iconoMomento = s.EsDeNoche ? "🌙" : "☀️";
+
         // Desgaste del vehículo + posible avería.
         int estadoPrevio = s.Vehiculo;
         s.Vehiculo = Math.Max(0, s.Vehiculo - VehicleService.DesgastePorViaje(r));
@@ -147,8 +150,8 @@ public static class TravelService
             {
                 decisionesPendientes.Add(dec);
                 events.Add(dec.Text);
-                s.AnadirDiario($"🎲 {dec.Text}");
-                texto += "\n🎲 " + dec.Text + "\n[Elige una opción.]";
+                s.AnadirDiario($"🎲{iconoMomento} {dec.Text}");
+                texto += "\n🎲" + iconoMomento + " " + dec.Text + "\n[Elige una opción.]";
             }
         }
 
@@ -160,8 +163,8 @@ public static class TravelService
             {
                 decisionesPendientes.Add(esp);
                 events.Add(esp.Text);
-                s.AnadirDiario($"🎲 Sobre la marcha: {esp.Text}");
-                texto += "\nSobre la marcha: paras un momento a mirar.\n🎲 " + esp.Text + "\n[Elige una opción.]";
+                s.AnadirDiario($"🎲{iconoMomento} Sobre la marcha: {esp.Text}");
+                texto += "\nSobre la marcha: paras un momento a mirar.\n🎲" + iconoMomento + " " + esp.Text + "\n[Elige una opción.]";
             }
         }
 
@@ -173,8 +176,8 @@ public static class TravelService
             {
                 decisionesPendientes.Add(reb);
                 events.Add(reb.Text);
-                s.AnadirDiario($"🎲 Parada en {destino.Name}: {reb.Text}");
-                texto += $"\nParada en {destino.Name}: descansas y miras a ver qué se puede aprovechar.\n🎲 {reb.Text}\n[Elige una opción.]";
+                s.AnadirDiario($"🎲{iconoMomento} Parada en {destino.Name}: {reb.Text}");
+                texto += $"\nParada en {destino.Name}: descansas y miras a ver qué se puede aprovechar.\n🎲{iconoMomento} {reb.Text}\n[Elige una opción.]";
             }
         }
 

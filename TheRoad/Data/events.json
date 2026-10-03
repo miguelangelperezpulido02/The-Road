@@ -1,5 +1,5 @@
 {
-  "_nota-autoria": "REGLA A/B/C: toda decision trae A-riesgosa (pierdes X, ganas Y grande), B-segura (efecto original o pequeno) y C-evitar (nada o coste menor). En amenazas puras: riesgo mayor / riesgo menor / evitar. Cada opcion lleva hint corto y result con numeros exactos. CONDICIONES: 'requiere' (recurso+min, deshabilita), 'requiereMarca'/'sinMarca' (oculta opcion o filtra evento). Toda decision conserva >=1 opcion incondicional.",
+  "_nota-autoria": "REGLA A/B/C: toda decision trae A-riesgosa (pierdes X, ganas Y grande), B-segura (efecto original o pequeno) y C-evitar (nada o coste menor). En amenazas puras: riesgo mayor / riesgo menor / evitar. Cada opcion lleva hint corto y result con numeros exactos. CONDICIONES: 'requiere' (recurso+min, deshabilita), 'requiereMarca'/'sinMarca' (oculta opcion o filtra evento). Toda decision conserva >=1 opcion incondicional. MOMENTO: 'momento' dia/noche solo si la narrativa lo pide (oscuridad, mercado, faros); sin momento = siempre. El sorteo filtra por momento de llegada y cae a genericos si el pool se vacia.",
   "decisionScavenge": [
     {
       "id": "rebusca-bidon",
@@ -72,12 +72,51 @@
           "result": "Marcas el lugar en el mapa por si vuelves. Sigues tu camino."
         }
       ]
+    },
+    {
+      "id": "luces",
+      "momento": "noche",
+      "text": "Luces encendidas en la gasolinera de la parada: alguien estuvo aquí hace poco.",
+      "options": [
+        {
+          "text": "Entrar con cuidado",
+          "hint": "-4 HP, +2 comida",
+          "effects": { "hp": -4, "food": 2 },
+          "result": "El dueño te recibe con un palo (-4 HP), pero te deja llevarte latas (+2 comida)."
+        },
+        {
+          "text": "Rodear y mirar desde fuera",
+          "hint": "+1 agua",
+          "effects": { "water": 1 },
+          "result": "Rodeas por fuera y llenas en el aljibe trasero (+1 agua). Nadie te ve."
+        }
+      ]
+    },
+    {
+      "id": "chatarrero",
+      "momento": "dia",
+      "text": "Un chatarrero trabaja a pleno sol entre los restos de la parada.",
+      "options": [
+        {
+          "text": "Ayudarle a desmontar un motor",
+          "hint": "-3 HP, +Chatarra",
+          "effects": { "hp": -3, "inventory": ["Chatarra"] },
+          "result": "Sudas con él al sol (-3 HP) y te paga con chatarra (+1 chatarra)."
+        },
+        {
+          "text": "Cambiarle una lata por piezas",
+          "hint": "-1 comida, +4 vehículo",
+          "effects": { "food": -1, "vehicle": 4 },
+          "result": "Le das una lata y te ajusta el motor (-1 comida, +4 vehículo)."
+        }
+      ]
     }
   ],
 
   "decisionBig": [
     {
       "id": "emboscada",
+      "momento": "noche",
       "text": "Emboscada en la autopista: disparos desde un viaducto barren la calzada.",
       "options": [
         {
@@ -150,6 +189,7 @@
     },
     {
       "id": "derrumbe",
+      "momento": "dia",
       "text": "La autopista está cortada por un derrumbe: toneladas de roca sobre el asfalto.",
       "options": [
         {
@@ -196,6 +236,56 @@
           "result": "Tiras de faros largos y motor alto (-5 gasolina). La tos te deja tocado (-3 HP)."
         }
       ]
+    },
+    {
+      "id": "faros",
+      "momento": "noche",
+      "text": "Unos faros te siguen a distancia por la autopista: se acercan y se alejan.",
+      "options": [
+        {
+          "text": "Pisar a fondo y perderlos",
+          "hint": "-15 HP",
+          "effects": { "hp": -15 },
+          "result": "Los pierdes entre curvas a fondo (-15 HP). El motor echa humo, pero no hay faros detrás."
+        },
+        {
+          "text": "Frenar en seco y plantar cara",
+          "hint": "-6 HP",
+          "effects": { "hp": -6 },
+          "result": "Frenas y los encaras con la palanca (-6 HP). Dan media vuelta y se pierden."
+        },
+        {
+          "text": "Apagar tus faros y dejarlos pasar",
+          "hint": "Sin cambios",
+          "effects": {},
+          "result": "Te haces a un lado a oscuras. Pasan de largo sin verte."
+        }
+      ]
+    },
+    {
+      "id": "polvo",
+      "momento": "dia",
+      "text": "Una polvareda en el horizonte: algo grande se mueve hacia la autopista.",
+      "options": [
+        {
+          "text": "Acercarse a investigar",
+          "hint": "-10 HP, +Chatarra",
+          "effects": { "hp": -10, "inventory": ["Chatarra"] },
+          "result": "Era una caravana volcada: la registras bajo el sol (-10 HP) y sacas chatarra (+1 chatarra)."
+        },
+        {
+          "text": "Seguir de largo a buen ritmo",
+          "hint": "-2 gasolina",
+          "effects": { "fuel": -2 },
+          "result": "No te gusta esa nube: gastas gasolina en alejarte (-2 gasolina)."
+        },
+        {
+          "text": "Detenerse hasta que pase",
+          "hint": "-1 comida",
+          "effects": { "food": -1 },
+          "result": "Esperas parado a que la polvareda se disipe. Comes algo mientras (-1 comida)."
+        }
+      ]
     }
   ],
   "decisionEvents": [
@@ -225,6 +315,7 @@
     },
     {
       "id": "arboles",
+      "momento": "noche",
       "text": "Algo se mueve entre los árboles al borde de la secundaria.",
       "options": [
         {
@@ -243,6 +334,7 @@
     },
     {
       "id": "arcen",
+      "momento": "dia",
       "text": "Chatarra útil brilla en el arcén.",
       "options": [
         {
@@ -360,6 +452,7 @@
     },
     {
       "id": "caravana-medica",
+      "momento": "dia",
       "text": "Una caravana de médicos reconoce tu botiquín y te ofrece ayuda.",
       "requiereMarca": "botiquin",
       "options": [
@@ -393,6 +486,56 @@
           "hint": "Sin cambios",
           "effects": {},
           "result": "Los saludas de lejos y sigues. Mejor no tentar."
+        }
+      ]
+    },
+    {
+      "id": "cuneta",
+      "momento": "noche",
+      "text": "Un llanto ahogado llega desde la cuneta oscura.",
+      "options": [
+        {
+          "text": "Bajar con la linterna",
+          "hint": "-8 HP, +1 medicina",
+          "effects": { "hp": -8, "medicine": 1 },
+          "result": "Un herido te araña al acercarte (-8 HP), pero su mochila trae vendas (+1 medicina)."
+        },
+        {
+          "text": "Gritar desde el coche",
+          "hint": "-2 HP",
+          "effects": { "hp": -2 },
+          "result": "Gritas y algo corre hacia la oscuridad: una piedra perdida te da (-2 HP)."
+        },
+        {
+          "text": "Cerrar las puertas y seguir",
+          "hint": "Sin cambios",
+          "effects": {},
+          "result": "Cierras por dentro y sigues. El llanto se queda atrás."
+        }
+      ]
+    },
+    {
+      "id": "mercadillo",
+      "momento": "dia",
+      "text": "Un mercadillo improvisado vende trastos al borde de la secundaria.",
+      "options": [
+        {
+          "text": "Cambiar gasolina por comida",
+          "hint": "-4 gasolina, +2 comida",
+          "effects": { "fuel": -4, "food": 2 },
+          "result": "Cambias gasolina por latas (-4 gasolina, +2 comida). Trato justo a plena luz."
+        },
+        {
+          "text": "Mirar sin comprar",
+          "hint": "+2 HP",
+          "effects": { "hp": 2 },
+          "result": "Paseas y estiras las piernas (+2 HP). Nada te convence."
+        },
+        {
+          "text": "Acelerar sin parar",
+          "hint": "Sin cambios",
+          "effects": {},
+          "result": "Mucho trasto y poca prisa ajena. Sigues tu camino."
         }
       ]
     }

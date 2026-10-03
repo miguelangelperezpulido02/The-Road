@@ -95,6 +95,8 @@ public partial class GameWindow : MetroWindow
             case "decisionD": _vm.DebugForzarDecision(); break;
             case "gas": _vm.DebugGasolina(20); break;
             case "bidon": _vm.DebugBidon(); break;
+            case "hora22": _vm.DebugFijarHora(22); break;
+            case "hora8": _vm.DebugFijarHora(8); break;
         }
         VistaMapa.Refrescar();
     }

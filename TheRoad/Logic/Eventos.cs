@@ -42,15 +42,24 @@ public static class Eventos
     public static bool OpcionDisponible(GameState s, DataService.DecisionOptionDto op)
         => CumpleMarcas(s, op) && CumpleRecurso(s, op);
 
-    /// <summary>Sortea una decisión válida de un pool, filtrando por SoloSi y marcas. Null si vacío.</summary>
+    /// <summary>¿Coincide el evento con el momento del día? (null/vacío: cualquier momento).</summary>
+    public static bool CoincideMomento(GameState? s, DataService.DecisionDto d)
+        => s == null || string.IsNullOrEmpty(d.Momento)
+        || d.Momento == (s.EsDeNoche ? "noche" : "dia");
+
+    /// <summary>Sortea una decisión válida de un pool, filtrando por SoloSi, marcas y momento.
+    /// Si el momento vacía el pool, se re-sortea entre los de cualquier momento. Null si vacío.</summary>
     private static DataService.DecisionDto? Sortear(List<DataService.DecisionDto> pool, GameState? s = null)
     {
-        var lista = pool
+        var base_ = pool
             .Where(d => d != null && !string.IsNullOrEmpty(d.Text) && d.Options.Count > 0
                 && (s == null || d.SoloSi == null || ValorRecurso(s, d.SoloSi.Recurso) <= d.SoloSi.Max)
                 && (s == null || string.IsNullOrEmpty(d.RequiereMarca) || s.Marcas.Contains(d.RequiereMarca))
                 && (s == null || string.IsNullOrEmpty(d.SinMarca) || !s.Marcas.Contains(d.SinMarca)))
             .ToList();
+        var lista = base_.Where(d => CoincideMomento(s, d)).ToList();
+        if (lista.Count == 0)
+            lista = base_.Where(d => string.IsNullOrEmpty(d.Momento)).ToList();
         if (lista.Count == 0) return null;
         return lista[_rnd.Next(lista.Count)];
     }

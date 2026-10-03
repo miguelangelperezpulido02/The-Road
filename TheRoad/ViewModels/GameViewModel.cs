@@ -405,6 +405,8 @@ public class GameViewModel : INotifyPropertyChanged
         new() { Etiqueta = "🎲 Decisión", Tag = "decisionD", Tooltip = "Fuerza la gasolinera (elige opción; sin diario)" },
         new() { Etiqueta = "+20 gasolina", Tag = "gas" },
         new() { Etiqueta = "+Bidón", Tag = "bidon" },
+        new() { Etiqueta = "🌙 Noche 22:00", Tag = "hora22", Tooltip = "Fija el reloj a las 22:00 (prueba eventos nocturnos)" },
+        new() { Etiqueta = "☀️ Día 08:00", Tag = "hora8", Tooltip = "Fija el reloj a las 08:00 (prueba eventos diurnos)" },
     };
     public bool EsDebugBuild
     {
@@ -448,6 +450,15 @@ public class GameViewModel : INotifyPropertyChanged
         AddNotification(
             $"[DEBUG] Tirada avería: prob {prob}% → {(averia ? "AVERÍA (sin daño aplicado)" : "sin avería")}.",
             averia ? NotificationType.Warning : NotificationType.Info);
+    }
+
+    /// <summary>Fija el reloj para probar eventos de día/noche (no avanza días).</summary>
+    public void DebugFijarHora(int hora)
+    {
+        _state.Hora = Math.Clamp(hora, 0, 23);
+        SyncFromState();
+        AddNotification($"[DEBUG] Reloj a las {_state.Hora:00}:00 ({(_state.EsDeNoche ? "noche" : "día")}).",
+            NotificationType.Info);
     }
 
     public void RepararVehiculo()

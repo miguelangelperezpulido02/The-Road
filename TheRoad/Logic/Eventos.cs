@@ -95,7 +95,8 @@ public static class Eventos
         s.Player.Combustible = Math.Clamp(s.Player.Combustible + e.Fuel, 0, ItemsService.MaxCombustible);
         s.Vehiculo = Math.Clamp(s.Vehiculo + e.Vehicle, 0, VehicleService.MaxEstado);
         s.Dia += e.Days;
-        if (!string.IsNullOrEmpty(e.Marca)) s.Marcas.Add(e.Marca);
+        foreach (var m in e.Marcas ?? [])
+            if (!string.IsNullOrEmpty(m)) s.Marcas.Add(m);
 
         // Los días que salta el evento también cuentan para la hambruna.
         int danoHambruna = ItemsService.AplicarHambruna(s.Player, e.Days);

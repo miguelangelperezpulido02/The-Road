@@ -1,5 +1,5 @@
 {
-  "_nota-autoria": "REGLA A/B/C: toda decision trae A-riesgosa (pierdes X, ganas Y grande), B-segura (efecto original o pequeno) y C-evitar (nada o coste menor). En amenazas puras: riesgo mayor / riesgo menor / evitar. Cada opcion lleva hint corto y result con numeros exactos. CONDICIONES: 'requiere' (recurso+min, deshabilita), 'requiereMarca'/'sinMarca' (oculta opcion o filtra evento). Toda decision conserva >=1 opcion incondicional. MOMENTO: 'momento' dia/noche solo si la narrativa lo pide (oscuridad, mercado, faros); sin momento = siempre. El sorteo filtra por momento de llegada y cae a genericos si el pool se vacia.",
+  "_nota-autoria": "REGLA A/B/C: toda decision trae A-riesgosa (pierdes X, ganas Y grande), B-segura (efecto original o pequeno) y C-evitar (nada o coste menor). En amenazas puras: riesgo mayor / riesgo menor / evitar. Cada opcion lleva hint corto y result con numeros exactos. CONDICIONES: 'requiere' (recurso+min, deshabilita), 'requiereMarca'/'sinMarca' (oculta opcion o filtra evento). Toda decision conserva >=1 opcion incondicional. MOMENTO: 'momento' dia/noche solo si la narrativa lo pide (oscuridad, mercado, faros); sin momento = siempre. El sorteo filtra por momento de llegada y cae a genericos si el pool se vacia. HUELLAS (E): violencia (fuerza/dano), saqueo (llevarse restos o lo ajeno), sigilo (pasar desapercibido), generosidad (dar/ayudar/perdonar), cautela (evitar/rodear/esperar). Toda opcion con carga narrativa otorga huella en 'marcas' (lista, convive con marcas especificas); las neutras pueden no tenerla.",
   "decisionScavenge": [
     {
       "id": "rebusca-bidon",
@@ -8,7 +8,7 @@
         {
           "text": "Llenar un bidón",
           "hint": "+Bidón",
-          "effects": { "inventory": ["Bidón de gasolina"] },
+          "effects": { "inventory": ["Bidón de gasolina"], "marcas": ["saqueo"] },
           "result": "Llenas un bidón (+1 bidón de gasolina). Pesa una tonelada."
         },
         {
@@ -26,13 +26,13 @@
         {
           "text": "Recoger chatarra",
           "hint": "+Chatarra",
-          "effects": { "inventory": ["Chatarra"] },
+          "effects": { "inventory": ["Chatarra"], "marcas": ["saqueo"] },
           "result": "Recoges chatarra que luego podrás cambiar (+1 chatarra)."
         },
         {
           "text": "Buscar piezas finas para el coche",
           "hint": "+5 vehículo",
-          "effects": { "vehicle": 5 },
+          "effects": { "vehicle": 5, "marcas": ["saqueo"] },
           "result": "Encuentras piezas que le sientan bien al coche (+5 vehículo)."
         }
       ]
@@ -44,7 +44,7 @@
         {
           "text": "Registrar la despensa",
           "hint": "+1 comida",
-          "effects": { "food": 1 },
+          "effects": { "food": 1, "marcas": ["saqueo"] },
           "result": "Encuentras una conserva intacta (+1 comida)."
         },
         {
@@ -68,7 +68,7 @@
         {
           "text": "Marcar el lugar y seguir",
           "hint": "Sin cambios",
-          "effects": {},
+          "effects": { "marcas": ["cautela"] },
           "result": "Marcas el lugar en el mapa por si vuelves. Sigues tu camino."
         }
       ]
@@ -81,13 +81,13 @@
         {
           "text": "Entrar con cuidado",
           "hint": "-4 HP, +2 comida",
-          "effects": { "hp": -4, "food": 2 },
+          "effects": { "hp": -4, "food": 2, "marcas": ["saqueo"] },
           "result": "El dueño te recibe con un palo (-4 HP), pero te deja llevarte latas (+2 comida)."
         },
         {
           "text": "Rodear y mirar desde fuera",
           "hint": "+1 agua",
-          "effects": { "water": 1 },
+          "effects": { "water": 1, "marcas": ["sigilo"] },
           "result": "Rodeas por fuera y llenas en el aljibe trasero (+1 agua). Nadie te ve."
         }
       ]
@@ -100,7 +100,7 @@
         {
           "text": "Ayudarle a desmontar un motor",
           "hint": "-3 HP, +Chatarra",
-          "effects": { "hp": -3, "inventory": ["Chatarra"] },
+          "effects": { "hp": -3, "inventory": ["Chatarra"], "marcas": ["generosidad"] },
           "result": "Sudas con él al sol (-3 HP) y te paga con chatarra (+1 chatarra)."
         },
         {
@@ -122,19 +122,20 @@
         {
           "text": "Acelerar y huir entre el fuego",
           "hint": "-20 HP",
-          "effects": { "hp": -20 },
+          "effects": { "hp": -20, "marcas": ["violencia"] },
+          "sinMarca": "cautela",
           "result": "Cruzas la cortina de balas a fondo (-20 HP). El retrovisor queda colgando."
         },
         {
           "text": "Frenar y cubrirse tras el coche",
           "hint": "-8 HP, -1 comida",
-          "effects": { "hp": -8, "food": -1 },
+          "effects": { "hp": -8, "food": -1, "marcas": ["cautela"] },
           "result": "Te parapetas hasta que se cansan (-8 HP). Pierdes provisiones en el tiroteo (-1 comida)."
         },
         {
           "text": "Abandonar el coche y huir a pie",
           "hint": "-5 HP, -10 vehículo",
-          "effects": { "hp": -5, "vehicle": -10 },
+          "effects": { "hp": -5, "vehicle": -10, "marcas": ["cautela"] },
           "result": "Escapas campo a través (-5 HP). A la vuelta el coche tiene varios impactos nuevos (-10 vehículo)."
         }
       ]
@@ -146,19 +147,19 @@
         {
           "text": "Saquear con calma",
           "hint": "+Chatarra, +Bidón",
-          "effects": { "inventory": ["Chatarra", "Bidón de gasolina"] },
+          "effects": { "inventory": ["Chatarra", "Bidón de gasolina"], "marcas": ["saqueo"] },
           "result": "Cargas chatarra y un bidón de gasolina (+2 objetos). Nadie los reclama."
         },
         {
           "text": "Forzar el camión cisterna",
           "hint": "+6 gasolina, -5 vehículo",
-          "effects": { "fuel": 6, "vehicle": -5 },
+          "effects": { "fuel": 6, "vehicle": -5, "marcas": ["saqueo"] },
           "result": "Trasiegas gasolina al depósito (+6 gasolina), pero golpeas los bajos al maniobrar (-5 vehículo)."
         },
         {
           "text": "Registrar la enfermería",
           "hint": "+2 medicina, -1 comida",
-          "effects": { "medicine": 2, "food": -1 },
+          "effects": { "medicine": 2, "food": -1, "marcas": ["saqueo"] },
           "result": "Encuentras vendas y morfina (+2 medicina). Un perro salvaje te roba una lata (-1 comida)."
         }
       ]
@@ -170,19 +171,20 @@
         {
           "text": "Pagar y encajar la paliza",
           "hint": "-1 comida, -12 HP",
-          "effects": { "food": -1, "hp": -12, "marca": "marcado-peaje" },
+          "effects": { "food": -1, "hp": -12, "marcas": ["marcado-peaje"] },
           "result": "Pagas con latas y un golpe de culata (-1 comida, -12 HP). Te marcan la cara para recordarte."
         },
         {
           "text": "Embestir la barricada",
           "hint": "-12 vehículo, -5 HP",
-          "effects": { "vehicle": -12, "hp": -5 },
+          "effects": { "vehicle": -12, "hp": -5, "marcas": ["violencia"] },
+          "sinMarca": "cautela",
           "result": "Arrollas bidones y tablones (-12 vehículo). Un tiro roza el capó y te hiere (-5 HP)."
         },
         {
           "text": "Rodear por el bosque",
           "hint": "+1 día, -1 comida, -1 agua",
-          "effects": { "days": 1, "food": -1, "water": -1 },
+          "effects": { "days": 1, "food": -1, "water": -1, "marcas": ["cautela"] },
           "result": "Das un rodeo de un día entero por pistas (+1 día, -1 comida, -1 agua)."
         }
       ]
@@ -195,7 +197,7 @@
         {
           "text": "Dar el rodeo de un día",
           "hint": "+1 día, -1 comida, -1 agua",
-          "effects": { "days": 1, "food": -1, "water": -1 },
+          "effects": { "days": 1, "food": -1, "water": -1, "marcas": ["cautela"] },
           "result": "Rodeas por la sierra: un día entero (+1 día, -1 comida, -1 agua)."
         },
         {
@@ -207,7 +209,7 @@
         {
           "text": "Esperar a que despejen",
           "hint": "+2 días, -2 comida",
-          "effects": { "days": 2, "food": -2 },
+          "effects": { "days": 2, "food": -2, "marcas": ["cautela"] },
           "result": "Acampas dos días hasta que una apisonadora abre paso (+2 días, -2 comida)."
         }
       ]
@@ -225,7 +227,7 @@
         {
           "text": "Detenerse y esperar",
           "hint": "+1 día, -1 comida",
-          "effects": { "days": 1, "food": -1 },
+          "effects": { "days": 1, "food": -1, "marcas": ["cautela"] },
           "result": "Te detienes con un trapo en la cara (+1 día). Comes en silencio (-1 comida)."
         },
         {
@@ -245,19 +247,20 @@
         {
           "text": "Pisar a fondo y perderlos",
           "hint": "-15 HP",
-          "effects": { "hp": -15 },
+          "effects": { "hp": -15, "marcas": ["violencia"] },
           "result": "Los pierdes entre curvas a fondo (-15 HP). El motor echa humo, pero no hay faros detrás."
         },
         {
           "text": "Frenar en seco y plantar cara",
           "hint": "-6 HP",
-          "effects": { "hp": -6 },
+          "effects": { "hp": -6, "marcas": ["violencia"] },
+          "sinMarca": "cautela",
           "result": "Frenas y los encaras con la palanca (-6 HP). Dan media vuelta y se pierden."
         },
         {
           "text": "Apagar tus faros y dejarlos pasar",
           "hint": "Sin cambios",
-          "effects": {},
+          "effects": { "marcas": ["sigilo"] },
           "result": "Te haces a un lado a oscuras. Pasan de largo sin verte."
         }
       ]
@@ -270,19 +273,19 @@
         {
           "text": "Acercarse a investigar",
           "hint": "-10 HP, +Chatarra",
-          "effects": { "hp": -10, "inventory": ["Chatarra"] },
+          "effects": { "hp": -10, "inventory": ["Chatarra"], "marcas": ["saqueo"] },
           "result": "Era una caravana volcada: la registras bajo el sol (-10 HP) y sacas chatarra (+1 chatarra)."
         },
         {
           "text": "Seguir de largo a buen ritmo",
           "hint": "-2 gasolina",
-          "effects": { "fuel": -2 },
+          "effects": { "fuel": -2, "marcas": ["cautela"] },
           "result": "No te gusta esa nube: gastas gasolina en alejarte (-2 gasolina)."
         },
         {
           "text": "Detenerse hasta que pase",
           "hint": "-1 comida",
-          "effects": { "food": -1 },
+          "effects": { "food": -1, "marcas": ["cautela"] },
           "result": "Esperas parado a que la polvareda se disipe. Comes algo mientras (-1 comida)."
         }
       ]
@@ -296,19 +299,19 @@
         {
           "text": "Sifonear gasolina de los surtidores",
           "hint": "+8 gasolina",
-          "effects": { "fuel": 8 },
+          "effects": { "fuel": 8, "marcas": ["saqueo"] },
           "result": "Llenas dos garrafas del depósito enterrado (+8 gasolina). Tardas un par de horas, pero nadie aparece."
         },
         {
           "text": "Registrar la tienda",
           "hint": "+2 comida, -6 HP",
-          "effects": { "food": 2, "hp": -6 },
+          "effects": { "food": 2, "hp": -6, "marcas": ["saqueo"] },
           "result": "Encuentras conservas tras el mostrador (+2 comida), pero una estantería podrida te cae encima (-6 HP)."
         },
         {
           "text": "Marcharse sin parar",
           "hint": "Sin cambios",
-          "effects": {},
+          "effects": { "marcas": ["cautela"] },
           "result": "No merece el riesgo. Pisas a fondo y la dejas atrás en el retrovisor."
         }
       ]
@@ -340,13 +343,13 @@
         {
           "text": "Cargarla tal cual",
           "hint": "+Chatarra",
-          "effects": { "inventory": ["Chatarra"] },
+          "effects": { "inventory": ["Chatarra"], "marcas": ["saqueo"] },
           "result": "Cargas la chatarra (+1 chatarra). Pesa, pero servirá."
         },
         {
           "text": "Dejarla y seguir",
           "hint": "Sin cambios",
-          "effects": {},
+          "effects": { "marcas": ["cautela"] },
           "result": "No merece parar el coche. Sigues tu camino."
         }
       ]
@@ -358,19 +361,20 @@
         {
           "text": "Dejarle una lata y espantarlo",
           "hint": "-1 comida",
-          "effects": { "food": -1 },
+          "effects": { "food": -1, "marcas": ["generosidad"] },
           "result": "Le dejas una lata y lo espantas (-1 comida). Te mira sin rencor."
         },
         {
           "text": "Ahuyentarlo a pedradas",
           "hint": "-2 HP",
-          "effects": { "hp": -2 },
+          "effects": { "hp": -2, "marcas": ["violencia"] },
+          "sinMarca": "generosidad",
           "result": "Lo ahuyentas a pedradas, pero te muerde al retroceder (-2 HP)."
         },
         {
           "text": "Adoptarlo y compartir tu lata",
           "hint": "-1 comida, te sigue",
-          "effects": { "food": -1, "marca": "perro" },
+          "effects": { "food": -1, "marcas": ["perro", "generosidad"] },
           "result": "Lo adoptas y compartes tu lata (-1 comida). El perro te sigue a todas partes."
         }
       ]
@@ -401,13 +405,13 @@
         {
           "text": "Rebuscar dosis",
           "hint": "+1 medicina, botiquín",
-          "effects": { "medicine": 1, "marca": "botiquin" },
+          "effects": { "medicine": 1, "marcas": ["botiquin", "saqueo"] },
           "result": "Encuentras una dosis intacta (+1 medicina) y te quedas el botiquín entero."
         },
         {
           "text": "Registrar el almacén",
           "hint": "+1 comida, -3 HP",
-          "effects": { "food": 1, "hp": -3 },
+          "effects": { "food": 1, "hp": -3, "marcas": ["saqueo"] },
           "result": "Hallan una conserva (+1 comida), pero te cortas con cristales (-3 HP)."
         }
       ]
@@ -426,7 +430,7 @@
         {
           "text": "Racionar y avanzar despacio",
           "hint": "+1 día, -1 comida",
-          "effects": { "days": 1, "food": -1 },
+          "effects": { "days": 1, "food": -1, "marcas": ["cautela"] },
           "result": "Avanzas al ralentí para ahorrar (+1 día). El estómago protesta (-1 comida)."
         }
       ]
@@ -439,7 +443,7 @@
         {
           "text": "Repartir tu lata con él",
           "hint": "-1 comida",
-          "effects": { "food": -1 },
+          "effects": { "food": -1, "marcas": ["generosidad"] },
           "result": "Come de tu mano (-1 comida). Definitivamente es tu perro."
         },
         {
@@ -465,7 +469,7 @@
         {
           "text": "Agradecer y seguir",
           "hint": "Sin cambios",
-          "effects": {},
+          "effects": { "marcas": ["generosidad"] },
           "result": "Agradeces y sigues tu camino. Buena gente, malos tiempos."
         }
       ]
@@ -484,7 +488,7 @@
         {
           "text": "Seguir tu camino",
           "hint": "Sin cambios",
-          "effects": {},
+          "effects": { "marcas": ["cautela"] },
           "result": "Los saludas de lejos y sigues. Mejor no tentar."
         }
       ]
@@ -497,19 +501,20 @@
         {
           "text": "Bajar con la linterna",
           "hint": "-8 HP, +1 medicina",
-          "effects": { "hp": -8, "medicine": 1 },
+          "effects": { "hp": -8, "medicine": 1, "marcas": ["generosidad"] },
           "result": "Un herido te araña al acercarte (-8 HP), pero su mochila trae vendas (+1 medicina)."
         },
         {
           "text": "Gritar desde el coche",
           "hint": "-2 HP",
-          "effects": { "hp": -2 },
+          "effects": { "hp": -2, "marcas": ["cautela"] },
           "result": "Gritas y algo corre hacia la oscuridad: una piedra perdida te da (-2 HP)."
         },
         {
           "text": "Cerrar las puertas y seguir",
           "hint": "Sin cambios",
-          "effects": {},
+          "effects": { "marcas": ["cautela"] },
+          "sinMarca": "generosidad",
           "result": "Cierras por dentro y sigues. El llanto se queda atrás."
         }
       ]
@@ -517,6 +522,7 @@
     {
       "id": "mercadillo",
       "momento": "dia",
+      "sinMarca": "violencia",
       "text": "Un mercadillo improvisado vende trastos al borde de la secundaria.",
       "options": [
         {

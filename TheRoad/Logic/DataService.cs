@@ -104,7 +104,8 @@ namespace TheRoad.Logic
             public int Days { get; set; }
             public int Fuel { get; set; }
             public int Vehicle { get; set; }
-            public string? Marca { get; set; }
+            /// <summary>Huellas que deja la opción (específicas y temáticas).</summary>
+            public List<string> Marcas { get; set; } = new();
             public List<string> Inventory { get; set; } = new();
         }
 

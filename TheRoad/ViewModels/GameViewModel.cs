@@ -235,6 +235,7 @@ public class GameViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(PuedeReparar));
         OnPropertyChanged(nameof(PuedeRebuscar));
         OnPropertyChanged(nameof(EstaMuerto));
+        OnPropertyChanged(nameof(HaGanado));
         OnPropertyChanged(nameof(PuedeViajar));
     }
 
@@ -247,9 +248,10 @@ public class GameViewModel : INotifyPropertyChanged
     public int ChatarraCount => VehicleService.ChatarraCount(_state.Player);
     public bool PuedeReparar => _state.Vehiculo < VehicleService.MaxEstado
         && VehicleService.ChatarraCount(_state.Player) > 0
-        && !_state.EstaMuerto;
+        && !_state.EstaMuerto && !_state.HaGanado;
 
     public bool EstaMuerto => _state.EstaMuerto;
+    public bool HaGanado => _state.HaGanado;
 
     // --- Avería: probabilidad visible en % ---
     public int ProbabilidadAveria => VehicleService.ProbabilidadAveria(_state.Vehiculo);
@@ -469,6 +471,7 @@ public class GameViewModel : INotifyPropertyChanged
     public void RepararVehiculo()
     {
         if (_state.EstaMuerto) { Narrativa = "Estás muerto. El coche ya no te lleva a ninguna parte."; return; }
+        if (_state.HaGanado) { Narrativa = "Llegaste a Nashville. El viaje terminó."; return; }
         string? texto = VehicleService.Reparar(_state.Player, _state);
         if (texto != null)
         {
@@ -631,7 +634,7 @@ public class GameViewModel : INotifyPropertyChanged
         }
     }
 
-    public List<Route> Destinos => TravelService.DestinosDesde(_state, _rutas, ModoTipo);
+    public List<Route> Destinos => TravelService.DestinosDesde(_state, _rutas, _lugares, ModoTipo);
 
     public string? DestinoSeleccionadoId
     {
@@ -642,10 +645,22 @@ public class GameViewModel : INotifyPropertyChanged
     public void SeleccionarDestino(string id)
     {
         if (id == _state.CurrentLocationId) return;
+        if (_state.HaGanado) { Narrativa = "Llegaste a Nashville. El viaje terminó."; return; }
+        if (!EsDestinoValido(id)) { Narrativa = "Solo puedes avanzar hacia el oeste. El este queda atrás."; return; }
         bool hayModo = HayRuta(id, ModoTipo);
         if (!hayModo && HayRuta(id, TipoViaje.Largo == ModoTipo ? TipoViaje.Segmentado : TipoViaje.Largo))
             ModoViaje = ModoTipo == TipoViaje.Largo ? "Secundaria" : "Autopista";
         DestinoSeleccionadoId = id;
+    }
+
+    /// <summary>Destino seleccionable: conectado por ruta y al oeste (sin retornos).</summary>
+    private bool EsDestinoValido(string destinoId)
+    {
+        var actual = _lugares.FirstOrDefault(x => x.Id == _state.CurrentLocationId);
+        var dest = _lugares.FirstOrDefault(x => x.Id == destinoId);
+        return actual != null && dest != null
+            && TravelService.EsAvance(actual, dest)
+            && _rutas.Any(x => Conecta(x, destinoId));
     }
 
     public string InfoDestino
@@ -655,8 +670,7 @@ public class GameViewModel : INotifyPropertyChanged
             if (_destinoSelId == null) return "Selecciona un destino en el mapa o en la lista.";
             var l = _lugares.FirstOrDefault(x => x.Id == _destinoSelId);
             if (l == null) return "Destino no conectado.";
-            bool conectado = _rutas.Any(x => Conecta(x, _destinoSelId));
-            if (!conectado) return "Destino no conectado.";
+            if (!EsDestinoValido(_destinoSelId)) return "Destino no conectado.";
 
             var lineas = new List<string> { $"{l.Name} — riesgo {_rutas.FirstOrDefault(x => Conecta(x, _destinoSelId))?.RiesgoTexto ?? "?"}" };
 
@@ -664,7 +678,7 @@ public class GameViewModel : INotifyPropertyChanged
             if (largo != null)
                 lineas.Add($"Autopista: {largo.DistanceKm} km, -{TravelService.CosteCombustible(largo)} gasolina, {TravelService.TiempoViajeTxt(largo)} · eventos {TravelService.ProbabilidadEvento(largo)}% · rápida y peligrosa");
 
-            var seg = TravelService.CaminoSegmentado(_state.CurrentLocationId, _destinoSelId, _rutas);
+            var seg = TravelService.CaminoSegmentado(_state.CurrentLocationId, _destinoSelId, _rutas, _lugares);
             if (seg.Count > 0)
             {
                 int km = seg.Sum(x => x.DistanceKm);
@@ -792,6 +806,14 @@ public class GameViewModel : INotifyPropertyChanged
                 PopupVisible = true;
                 AddNotification("Has muerto. Fin del viaje.", NotificationType.Danger);
             }
+            else if (_state.HaGanado)
+            {
+                Narrativa += "\n\nHas llegado a Nashville. El viaje termina aquí.";
+                PopupTitulo = "🏁 FIN DEL VIAJE";
+                PopupTexto = $"Has llegado a Nashville el día {_state.Dia} a las {_state.Hora:00}:00.\nEl camino sigue sin ti... pero el tuyo terminó.";
+                PopupVisible = true;
+                AddNotification("Llegaste a Nashville. Fin del viaje.", NotificationType.Success);
+            }
 
             if (_state.Vehiculo <= 0)
                 AddNotification("El coche no anda (0/100). Repáralo con chatarra.", NotificationType.Danger);
@@ -811,7 +833,7 @@ public class GameViewModel : INotifyPropertyChanged
     }
 
     /// <summary>Anti-softlock: con el coche a 0, rebuscar los alrededores a pie (4 h) como decisión.</summary>
-    public bool PuedeRebuscar => _state.Vehiculo <= 0 && !_state.EstaMuerto;
+    public bool PuedeRebuscar => _state.Vehiculo <= 0 && !_state.EstaMuerto && !_state.HaGanado;
 
     public void RebuscarAlrededores()
     {
@@ -828,6 +850,7 @@ public class GameViewModel : INotifyPropertyChanged
     {
         if (string.IsNullOrEmpty(item)) return;
         if (_state.EstaMuerto) { Narrativa = "Estás muerto. Los objetos ya no te sirven."; return; }
+        if (_state.HaGanado) { Narrativa = "Llegaste a Nashville. El viaje terminó."; return; }
         string? texto = ItemsService.Usar(item, _state.Player);
         if (texto != null)
         {
@@ -880,7 +903,8 @@ public class GameViewModel : INotifyPropertyChanged
             string? sig = _rutas
                 .Where(x => x.Tipo == TipoViaje.Segmentado && (x.FromId == actual || x.ToId == actual))
                 .Select(x => TravelService.OtroExtremo(x, actual))
-                .FirstOrDefault(x => x != previo);
+                .Where(x => x != previo && EsMasAlOeste(x, actual))
+                .FirstOrDefault();
             if (sig == null) return null;
             previo = actual;
             actual = sig;
@@ -888,9 +912,17 @@ public class GameViewModel : INotifyPropertyChanged
         return null;
     }
 
+    private bool EsMasAlOeste(string id, string que)
+    {
+        var a = _lugares.FirstOrDefault(x => x.Id == id);
+        var b = _lugares.FirstOrDefault(x => x.Id == que);
+        return a != null && b != null && a.X < b.X;
+    }
+
     private Route? RutaAlDestino()
     {
         if (_destinoSelId == null) return null;
+        if (!EsDestinoValido(_destinoSelId)) return null;
         return _rutas.FirstOrDefault(x => x.Tipo == ModoTipo && Conecta(x, _destinoSelId));
     }
 

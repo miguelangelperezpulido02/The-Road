@@ -256,15 +256,12 @@
                             </StackPanel>
                         </ScrollViewer>
 
-                        <!-- MAPA -->
+                        <!-- MAPA (sin ScrollViewer: el mapa tiene su propio pan/zoom y el
+                             scroller se tragaba la rueda del ratón antes de que llegara al mapa) -->
                         <Border x:Name="PanelMapa"
                                 Visibility="{Binding Vista, Converter={StaticResource StringToVis}, ConverterParameter=Mapa}"
                                 Background="Transparent">
-                            <ScrollViewer HorizontalScrollBarVisibility="Auto"
-                                          VerticalScrollBarVisibility="Auto"
-                                          Style="{StaticResource StyledScrollViewer}">
                                 <views:MapView x:Name="VistaMapa" />
-                            </ScrollViewer>
                         </Border>
 
                         <!-- DIARIO -->

@@ -111,11 +111,83 @@
     {
       "id": "asheville",
       "name": "Asheville",
-      "description": "Refugio de monta\u00f1a. Reparten gasolina a cambio de historias.",
+      "description": "Refugio de montaña. Reparten gasolina a cambio de historias.",
       "x": 414,
       "y": 273,
       "isStop": true,
       "icon": "stop_mountain"
+    },
+    {
+      "id": "bedford",
+      "name": "Bedford",
+      "description": "Aserradero parado. Entre los troncos queda chatarra útil.",
+      "x": 522,
+      "y": 219,
+      "isStop": true,
+      "icon": "stop_sawmill"
+    },
+    {
+      "id": "winchester",
+      "name": "Winchester",
+      "description": "Depósito ferroviario saqueado. Aún crujen las grúas.",
+      "x": 530,
+      "y": 134,
+      "isStop": true,
+      "icon": "stop_depot"
+    },
+    {
+      "id": "danville",
+      "name": "Danville",
+      "description": "Motel de carretera con las puertas arrancadas. Algo queda.",
+      "x": 510,
+      "y": 270,
+      "isStop": true,
+      "icon": "stop_motel"
+    },
+    {
+      "id": "bristol",
+      "name": "Bristol",
+      "description": "Puesto fronterizo entre estados. Nadie cobra peaje ya.",
+      "x": 465,
+      "y": 230,
+      "isStop": true,
+      "icon": "stop_outpost"
+    },
+    {
+      "id": "jackson",
+      "name": "Jackson",
+      "description": "Cruce junto al río. El puente aguanta si vas despacio.",
+      "x": 404,
+      "y": 206,
+      "isStop": true,
+      "icon": "stop_river"
+    },
+    {
+      "id": "crossville",
+      "name": "Crossville",
+      "description": "Meseta barrida por el viento. Se ve venir todo de lejos.",
+      "x": 395,
+      "y": 235,
+      "isStop": true,
+      "icon": "stop_plateau"
+    },
+    {
+      "id": "hendersonville",
+      "name": "Hendersonville",
+      "description": "Cabañas junto al lago. El agua está fría y limpia.",
+      "x": 387,
+      "y": 252,
+      "isStop": true,
+      "icon": "stop_lake"
+    },
+    {
+      "id": "spartanburg",
+      "name": "Spartanburg",
+      "description": "Fábrica textil abandonada. Telas para remendar y trueque.",
+      "x": 447,
+      "y": 282,
+      "isStop": true,
+      "icon": "stop_textile"
     }
   ]
 }

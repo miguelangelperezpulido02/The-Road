@@ -142,8 +142,7 @@
                 MouseLeave="MapBorder_MouseLeave">
 
             <Canvas x:Name="MapCanvas"
-                    Width="1400" Height="760"
-                    RenderTransformOrigin="0.5,0.5">
+                    Width="1400" Height="760">
                 <Canvas.RenderTransform>
                     <TransformGroup>
                         <ScaleTransform x:Name="MapScaleTransform" ScaleX="1" ScaleY="1" />
@@ -224,8 +223,8 @@
                     VerticalAlignment="Bottom"
                     Margin="12"
                     Orientation="Vertical">
-            <Button Content="+" Click="BtnZoomIn_Click" Style="{StaticResource GridButton}" Width="36" Height="36" ToolTip="Acercar (Ctrl+Rueda)" />
-            <Button Content="−" Click="BtnZoomOut_Click" Style="{StaticResource GridButton}" Width="36" Height="36" Margin="0,4,0,0" ToolTip="Alejar (Ctrl+Rueda)" />
+            <Button Content="+" Click="BtnZoomIn_Click" Style="{StaticResource GridButton}" Width="36" Height="36" ToolTip="Acercar (rueda)" />
+            <Button Content="−" Click="BtnZoomOut_Click" Style="{StaticResource GridButton}" Width="36" Height="36" Margin="0,4,0,0" ToolTip="Alejar (rueda)" />
             <Button Content="⌂" Click="BtnResetView_Click" Style="{StaticResource GridButton}" Width="36" Height="36" Margin="0,4,0,0" ToolTip="Vista inicial (Espacio)" />
         </StackPanel>
 

@@ -38,6 +38,9 @@ public class GameState
     /// <summary>Derivada: sin HP no hay acciones (game-over). Sin flag que sincronizar.</summary>
     public bool EstaMuerto => Player.HP <= 0;
 
+    /// <summary>Derivada: llegar al destino final es victoria (fin de la run). Sin flag que sincronizar.</summary>
+    public bool HaGanado => CurrentLocationId == TravelService.DestinoFinalId;
+
     /// <summary>Añade una línea al diario con el prefijo de día/hora actual.</summary>
     public void AnadirDiario(string texto) => Diario.Add($"Día {Dia} {Hora:00}:00: {texto}");
 }

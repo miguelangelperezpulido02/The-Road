@@ -34,11 +34,23 @@ public static class TravelService
     /// <summary>Probabilidad de parada espontánea en secundaria (Fase C).</summary>
     public const int ProbEspontanea = 20;
 
-    public static List<Route> DestinosDesde(GameState s, List<Route> todas)
-        => todas.Where(r => r.FromId == s.CurrentLocationId || r.ToId == s.CurrentLocationId).ToList();
+    /// <summary>Destino final del viaje: llegar aquí es victoria (mapa v0.5, solo avance al oeste).</summary>
+    public const string DestinoFinalId = "nashville";
 
-    public static List<Route> DestinosDesde(GameState s, List<Route> todas, TipoViaje modo)
-        => DestinosDesde(s, todas).Where(r => r.Tipo == modo).ToList();
+    /// <summary>Solo se puede avanzar hacia el oeste: el destino debe quedar a la izquierda (X menor).</summary>
+    public static bool EsAvance(Location desde, Location hasta) => hasta.X < desde.X;
+
+    public static List<Route> DestinosDesde(GameState s, List<Route> todas, List<Location> lugares)
+    {
+        var xs = lugares.ToDictionary(l => l.Id, l => l.X);
+        double xActual = xs.TryGetValue(s.CurrentLocationId, out double xa) ? xa : double.MaxValue;
+        return todas.Where(r =>
+            (r.FromId == s.CurrentLocationId || r.ToId == s.CurrentLocationId)
+            && xs.TryGetValue(OtroExtremo(r, s.CurrentLocationId), out double xd) && xd < xActual).ToList();
+    }
+
+    public static List<Route> DestinosDesde(GameState s, List<Route> todas, List<Location> lugares, TipoViaje modo)
+        => DestinosDesde(s, todas, lugares).Where(r => r.Tipo == modo).ToList();
 
     public static string OtroExtremo(Route r, string desde)
         => r.FromId == desde ? r.ToId : r.FromId;
@@ -76,10 +88,11 @@ public static class TravelService
             ? ProbBaseLargo + ProbPorRiesgoLargo * r.Riesgo
             : ProbBaseSegmentado + ProbPorRiesgoSegmentado * r.Riesgo, 0, 100);
 
-    public static List<Route> CaminoSegmentado(string desde, string hasta, List<Route> todas)
+    public static List<Route> CaminoSegmentado(string desde, string hasta, List<Route> todas, List<Location> lugares)
     {
         if (desde == hasta) return [];
 
+        var xs = lugares.ToDictionary(l => l.Id, l => l.X);
         var secundarias = todas.Where(r => r.Tipo == TipoViaje.Segmentado).ToList();
         var cola = new Queue<(string Id, List<Route> Camino)>();
         var vistos = new HashSet<string> { desde };
@@ -88,9 +101,12 @@ public static class TravelService
         while (cola.Count > 0)
         {
             var (id, camino) = cola.Dequeue();
+            double xId = xs.TryGetValue(id, out double xi) ? xi : double.MaxValue;
             foreach (var r in secundarias.Where(x => x.FromId == id || x.ToId == id))
             {
                 string otro = OtroExtremo(r, id);
+                // Dirigido al oeste: no se vuelve sobre los pasos.
+                if (!(xs.TryGetValue(otro, out double xo) && xo < xId)) continue;
                 if (!vistos.Add(otro)) continue;
                 var nuevo = new List<Route>(camino) { r };
                 if (otro == hasta) return nuevo;
@@ -108,6 +124,8 @@ public static class TravelService
         if (coche != null) return coche;
         if (s.Player.HP <= 0)
             return "Estás muerto. No puedes viajar.";
+        if (s.HaGanado)
+            return "Llegaste a Nashville. El viaje terminó.";
         return null;
     }
 
@@ -123,6 +141,18 @@ public static class TravelService
                 Narrative = "Ese destino no existe en el mapa. Viaje cancelado.",
                 DestinationId = destinoId,
                 DestinationName = "Desconocido",
+                Route = r
+            };
+        }
+        var actual = lugares.FirstOrDefault(l => l.Id == s.CurrentLocationId);
+        if (actual != null && !EsAvance(actual, destino))
+        {
+            // Retroceso: solo se avanza al oeste. Se cancela sin mutar el estado.
+            return new TravelResult
+            {
+                Narrative = "Solo puedes avanzar hacia el oeste. Viaje cancelado.",
+                DestinationId = destinoId,
+                DestinationName = destino.Name,
                 Route = r
             };
         }

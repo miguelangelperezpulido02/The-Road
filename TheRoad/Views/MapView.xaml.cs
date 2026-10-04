@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Effects;
 using System.Windows.Shapes;
 using TheRoad.Logic;
 using TheRoad.Models;
@@ -19,7 +20,7 @@ public partial class MapView : UserControl
     private bool _isPanning;
     private Point _lastPanPoint;
     private double _currentScale = 1.0;
-    private const double MinScale = 0.3;
+    private const double MinScale = 0.7;
     private const double MaxScale = 3.0;
 
     private readonly Dictionary<string, MapNode> _nodeControls = new();
@@ -74,9 +75,13 @@ public partial class MapView : UserControl
         _routePaths.Clear();
 
         string? destino = vm.DestinoSeleccionadoId;
+        var xs = vm.Lugares.ToDictionary(l => l.Id, l => l.X);
+        double xActual = xs.TryGetValue(vm.CurrentId, out double xa) ? xa : double.MaxValue;
+        // Solo avance al oeste: el este queda atrás y no brilla como alcanzable.
         var reachable = new HashSet<string>(vm.Rutas
             .Where(r => r.FromId == vm.CurrentId || r.ToId == vm.CurrentId)
-            .Select(r => r.FromId == vm.CurrentId ? r.ToId : r.FromId));
+            .Select(r => r.FromId == vm.CurrentId ? r.ToId : r.FromId)
+            .Where(id => xs.TryGetValue(id, out double xd) && xd < xActual));
 
         // Draw routes
         foreach (var r in vm.Rutas)
@@ -95,11 +100,16 @@ public partial class MapView : UserControl
         }
 
         // Draw nodes
+        int idx = 0;
         foreach (var l in vm.Lugares)
         {
             var node = CreateNode(l, vm, reachable, destino);
             NodesCanvas.Children.Add(node);
             _nodeControls[l.Id] = node;
+            // Etiqueta permanente: ciudades abajo, paradas alternando abajo/arriba.
+            bool arriba = l.EsParada && idx % 2 == 1;
+            NodesCanvas.Children.Add(CreateLabel(l, arriba));
+            idx++;
         }
 
         // Update minimap
@@ -209,15 +219,40 @@ public partial class MapView : UserControl
         return new SolidColorBrush(Color.FromRgb(0x3A, 0x3A, 0x2A));
     }
 
+    private static TextBlock CreateLabel(Location l, bool arriba)
+    {
+        var tb = new TextBlock
+        {
+            Text = l.Name,
+            Width = 140,
+            TextAlignment = TextAlignment.Center,
+            TextWrapping = TextWrapping.NoWrap,
+            TextTrimming = TextTrimming.CharacterEllipsis,
+            FontSize = l.EsParada ? 10 : 13,
+            FontWeight = l.EsParada ? FontWeights.Normal : FontWeights.Bold,
+            Foreground = l.EsParada
+                ? new SolidColorBrush(Color.FromRgb(0xB8, 0xB0, 0xA0))
+                : new SolidColorBrush(Color.FromRgb(0xD8, 0xA5, 0x45)),
+            Effect = new DropShadowEffect { Color = Colors.Black, BlurRadius = 4, ShadowDepth = 0, Opacity = 0.9 }
+        };
+        double half = (l.EsParada ? 14 : 22) / 2.0;
+        Canvas.SetLeft(tb, l.X - 70);
+        Canvas.SetTop(tb, arriba ? l.Y - half - 18 : l.Y + half + 2);
+        return tb;
+    }
+
     private void UpdateVisualState()
     {
         var vm = _vm;
         if (vm == null) return;
 
         string? destino = vm.DestinoSeleccionadoId;
+        var xs = vm.Lugares.ToDictionary(l => l.Id, l => l.X);
+        double xActual = xs.TryGetValue(vm.CurrentId, out double xa) ? xa : double.MaxValue;
         var reachable = new HashSet<string>(vm.Rutas
             .Where(r => r.FromId == vm.CurrentId || r.ToId == vm.CurrentId)
-            .Select(r => r.FromId == vm.CurrentId ? r.ToId : r.FromId));
+            .Select(r => r.FromId == vm.CurrentId ? r.ToId : r.FromId)
+            .Where(id => xs.TryGetValue(id, out double xd) && xd < xActual));
 
         // Update nodes
         foreach (var kvp in _nodeControls)
@@ -359,7 +394,7 @@ public partial class MapView : UserControl
             routeInfo.Add($"🛣 Autopista: {largo.DistanceKm} km · -{gas} gas · {TravelService.TiempoViajeTxt(largo)}");
         }
 
-        var seg = TravelService.CaminoSegmentado(vm.CurrentId, destino, vm.Rutas.ToList());
+        var seg = TravelService.CaminoSegmentado(vm.CurrentId, destino, vm.Rutas.ToList(), vm.Lugares.ToList());
         if (seg.Count > 0)
         {
             int km = seg.Sum(x => x.DistanceKm);
@@ -385,29 +420,30 @@ public partial class MapView : UserControl
     // ============================================================
     private void MapBorder_MouseWheel(object sender, MouseWheelEventArgs e)
     {
-        if (Keyboard.Modifiers != ModifierKeys.Control) return;
-
+        // Sin ScrollViewer alrededor: la rueda es zoom directo (con o sin Ctrl).
         e.Handled = true;
-        Point mousePos = e.GetPosition(MapCanvas);
+        ZoomAt(e.GetPosition(MapBorder), e.Delta > 0 ? 1.15 : 1 / 1.15);
+    }
 
-        double zoomFactor = e.Delta > 0 ? 1.15 : 1 / 1.15;
-        double newScale = Math.Clamp(_currentScale * zoomFactor, MinScale, MaxScale);
-
+    /// <summary>Zoom con ancla en coordenadas del viewport (origen del transform en 0,0).</summary>
+    private void ZoomAt(Point ancla, double factor)
+    {
+        double newScale = Math.Clamp(_currentScale * factor, MinScale, MaxScale);
         if (Math.Abs(newScale - _currentScale) < 0.001) return;
 
-        double scaleRatio = newScale / _currentScale;
+        double ratio = newScale / _currentScale;
         _currentScale = newScale;
-
         MapScaleTransform.ScaleX = _currentScale;
         MapScaleTransform.ScaleY = _currentScale;
 
-        // Zoom toward mouse position
-        MapTranslateTransform.X = mousePos.X - (mousePos.X - MapTranslateTransform.X) * scaleRatio;
-        MapTranslateTransform.Y = mousePos.Y - (mousePos.Y - MapTranslateTransform.Y) * scaleRatio;
+        MapTranslateTransform.X = ancla.X - (ancla.X - MapTranslateTransform.X) * ratio;
+        MapTranslateTransform.Y = ancla.Y - (ancla.Y - MapTranslateTransform.Y) * ratio;
 
         ClampTranslation();
         UpdateMinimap(_vm);
     }
+
+    private Point CentroVista() => new(MapBorder.ActualWidth / 2, MapBorder.ActualHeight / 2);
 
     private void MapBorder_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
@@ -486,20 +522,12 @@ public partial class MapView : UserControl
 
     private void BtnZoomIn_Click(object sender, RoutedEventArgs e)
     {
-        _currentScale = Math.Clamp(_currentScale * 1.25, MinScale, MaxScale);
-        MapScaleTransform.ScaleX = _currentScale;
-        MapScaleTransform.ScaleY = _currentScale;
-        ClampTranslation();
-        UpdateMinimap(_vm);
+        ZoomAt(CentroVista(), 1.25);
     }
 
     private void BtnZoomOut_Click(object sender, RoutedEventArgs e)
     {
-        _currentScale = Math.Clamp(_currentScale / 1.25, MinScale, MaxScale);
-        MapScaleTransform.ScaleX = _currentScale;
-        MapScaleTransform.ScaleY = _currentScale;
-        ClampTranslation();
-        UpdateMinimap(_vm);
+        ZoomAt(CentroVista(), 1 / 1.25);
     }
 
     private void BtnResetView_Click(object sender, RoutedEventArgs e)
@@ -512,8 +540,19 @@ public partial class MapView : UserControl
         _currentScale = 1.0;
         MapScaleTransform.ScaleX = 1.0;
         MapScaleTransform.ScaleY = 1.0;
-        MapTranslateTransform.X = 0;
-        MapTranslateTransform.Y = 0;
+        CentrarEnActual();
+    }
+
+    /// <summary>La vista "casa" centra el nodo actual (no la esquina del canvas).</summary>
+    private void CentrarEnActual()
+    {
+        var vm = _vm;
+        var l = vm?.Lugares.FirstOrDefault(x => x.Id == vm.CurrentId);
+        double cx = l?.X ?? MapCanvas.Width / 2;
+        double cy = l?.Y ?? MapCanvas.Height / 2;
+        MapTranslateTransform.X = MapBorder.ActualWidth / 2 - cx * _currentScale;
+        MapTranslateTransform.Y = MapBorder.ActualHeight / 2 - cy * _currentScale;
+        ClampTranslation();
         UpdateMinimap(_vm);
     }
 

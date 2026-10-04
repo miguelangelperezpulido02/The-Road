@@ -2,27 +2,24 @@ using System.IO;
 
 namespace TheRoad.Logic;
 
-// Avatares prediseñados: viven en Assets/Avatares/*.png y viajan junto al exe.
-// Para cambiarlos basta sustituir los PNG manteniendo el nombre de archivo.
+// Fotos prediseñadas de PJ: viven en Assets/Images/Player/*.jpg y viajan junto al exe.
+// Para añadir más basta soltar el JPG en esa carpeta y registrarlo en Presets.
 public sealed record AvatarPreset(string Id, string Nombre, string Archivo);
 
 public static class AvatarCatalog
 {
     public static readonly IReadOnlyList<AvatarPreset> Presets =
     [
-        new("viajero", "Viajero", "viajero.png"),
-        new("chatarrera", "Chatarrera", "chatarrera.png"),
-        new("rastreador", "Rastreador", "rastreador.png"),
-        new("doctora", "Doctora", "doctora.png"),
-        new("lider", "Líder", "lider.png"),
-        new("saqueadora", "Saqueadora", "saqueadora.png"),
+        new("pj1", "Vagabunda", "PJ1.jpg"),
+        new("pj2", "Veterano", "PJ2.jpg"),
+        new("pj3", "Enmascarada", "PJ3.jpg"),
     ];
 
     // Ruta absoluta en disco (junto al exe, no dentro del assembly).
     public static string RutaDe(AvatarPreset p) =>
-        Path.Combine(AppContext.BaseDirectory, "Assets", "Avatares", p.Archivo);
+        Path.Combine(AppContext.BaseDirectory, "Assets", "Images", "Player", p.Archivo);
 
-    // Solo los que existen físicamente (si el jugador borra uno, no se ofrece).
+    // Solo las que existen físicamente (si falta un archivo, no se ofrece).
     public static IEnumerable<(AvatarPreset Preset, string Ruta)> Disponibles()
     {
         foreach (var p in Presets)

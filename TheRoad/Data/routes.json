@@ -72,8 +72,15 @@
     },
     {
       "fromId": "lynchburg",
+      "toId": "bedford",
+      "distanceKm": 70,
+      "risk": 2,
+      "type": "Segmentado"
+    },
+    {
+      "fromId": "bedford",
       "toId": "roanoke",
-      "distanceKm": 140,
+      "distanceKm": 70,
       "risk": 2,
       "type": "Segmentado"
     },
@@ -86,8 +93,15 @@
     },
     {
       "fromId": "cumberland",
+      "toId": "winchester",
+      "distanceKm": 95,
+      "risk": 2,
+      "type": "Segmentado"
+    },
+    {
+      "fromId": "winchester",
       "toId": "pittsburgh",
-      "distanceKm": 190,
+      "distanceKm": 95,
       "risk": 2,
       "type": "Segmentado"
     },
@@ -100,22 +114,50 @@
     },
     {
       "fromId": "greensboro",
+      "toId": "danville",
+      "distanceKm": 125,
+      "risk": 3,
+      "type": "Segmentado"
+    },
+    {
+      "fromId": "danville",
       "toId": "charleston",
-      "distanceKm": 250,
+      "distanceKm": 125,
       "risk": 3,
       "type": "Segmentado"
     },
     {
       "fromId": "roanoke",
+      "toId": "bristol",
+      "distanceKm": 120,
+      "risk": 2,
+      "type": "Segmentado"
+    },
+    {
+      "fromId": "bristol",
       "toId": "knoxville",
-      "distanceKm": 240,
+      "distanceKm": 120,
       "risk": 2,
       "type": "Segmentado"
     },
     {
       "fromId": "knoxville",
+      "toId": "crossville",
+      "distanceKm": 112,
+      "risk": 2,
+      "type": "Segmentado"
+    },
+    {
+      "fromId": "asheville",
+      "toId": "hendersonville",
+      "distanceKm": 97,
+      "risk": 2,
+      "type": "Segmentado"
+    },
+    {
+      "fromId": "hendersonville",
       "toId": "nashville",
-      "distanceKm": 225,
+      "distanceKm": 98,
       "risk": 2,
       "type": "Segmentado"
     },
@@ -128,15 +170,29 @@
     },
     {
       "fromId": "lexington",
+      "toId": "jackson",
+      "distanceKm": 155,
+      "risk": 2,
+      "type": "Segmentado"
+    },
+    {
+      "fromId": "jackson",
       "toId": "nashville",
-      "distanceKm": 310,
+      "distanceKm": 155,
       "risk": 2,
       "type": "Segmentado"
     },
     {
       "fromId": "charleston",
+      "toId": "spartanburg",
+      "distanceKm": 100,
+      "risk": 2,
+      "type": "Segmentado"
+    },
+    {
+      "fromId": "spartanburg",
       "toId": "asheville",
-      "distanceKm": 200,
+      "distanceKm": 100,
       "risk": 2,
       "type": "Segmentado"
     },

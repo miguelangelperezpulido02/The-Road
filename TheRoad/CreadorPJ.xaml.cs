@@ -52,6 +52,12 @@ public partial class CreadorPJWindow : MetroWindow
         _vm.PhotoPath = null;
     }
 
+    private void AvatarPreset_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button b && b.Tag is string ruta)
+            _vm.ElegirAvatar(ruta);
+    }
+
     private void BtnAleatorio_Click(object sender, RoutedEventArgs e) => _vm.Aleatorio();
 
     private void BtnReiniciar_Click(object sender, RoutedEventArgs e) => _vm.Reiniciar();

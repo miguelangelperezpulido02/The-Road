@@ -76,6 +76,28 @@
                     </Grid>
                 </Border>
 
+                <TextBlock Text="O ELIGE UNA PREDISEÑADA" Style="{StaticResource HeaderTextBlock}" Margin="0,12,0,8" />
+                <ItemsControl ItemsSource="{Binding Avatares}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Click="AvatarPreset_Click" Tag="{Binding Ruta}" ToolTip="{Binding Nombre}"
+                                    Padding="2" Margin="0,0,8,8" Background="Transparent" BorderThickness="0">
+                                <StackPanel>
+                                    <Image Source="{Binding Ruta}" Width="56" Height="56" Stretch="UniformToFill" />
+                                    <TextBlock Text="{Binding Nombre}" Style="{StaticResource MonoTextBlock}"
+                                               FontSize="10" TextAlignment="Center" MaxWidth="64"
+                                               TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
                 <!-- Stats -->
                 <TextBlock Text="HABILIDADES" Style="{StaticResource HeaderTextBlock}" Margin="0,16,0,8" />
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,4">

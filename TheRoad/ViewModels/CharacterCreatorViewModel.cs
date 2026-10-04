@@ -99,6 +99,16 @@ public class CharacterCreatorViewModel : INotifyPropertyChanged
 
     public bool TieneFoto => !string.IsNullOrWhiteSpace(_player.PhotoPath);
 
+    // Galería de avatares prediseñados (Assets/Avatares). Solo datos: Nombre + ruta.
+    public sealed record AvatarItem(string Nombre, string Ruta);
+    public ObservableCollection<AvatarItem> Avatares { get; } = new();
+
+    public void ElegirAvatar(string ruta)
+    {
+        PhotoPath = ruta;
+        Avisar();
+    }
+
     public int Fuerza
     {
         get => _player.Fuerza;
@@ -142,6 +152,13 @@ public class CharacterCreatorViewModel : INotifyPropertyChanged
     public CharacterCreatorViewModel()
     {
         InitializeStatRows();
+        InitializeAvatares();
+    }
+
+    private void InitializeAvatares()
+    {
+        foreach (var (preset, ruta) in Logic.AvatarCatalog.Disponibles())
+            Avatares.Add(new AvatarItem(preset.Nombre, ruta));
     }
 
     private void InitializeStatRows()
